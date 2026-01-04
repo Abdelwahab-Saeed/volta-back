@@ -36,11 +36,16 @@ class CartController extends Controller
 
         if ($cartItem) {
             $cartItem->quantity += $request->quantity;
+            // Optionally update price snapshot to current price when adding more
+            $product = Product::find($request->product_id);
+            $cartItem->price_snapshot = $product->final_price; 
             $cartItem->save();
         } else {
+            $product = Product::find($request->product_id);
             $cart->items()->create([
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
+                'price_snapshot' => $product->final_price,
             ]);
         }
 
@@ -67,6 +72,8 @@ class CartController extends Controller
         }
 
         $cartItem->quantity = $request->quantity;
+        // Refresh price snapshot to current final price
+        $cartItem->price_snapshot = $cartItem->product->final_price;
         $cartItem->save();
 
         return response()->json(['message' => 'Cart updated', 'cart' => $cart->load('items.product')]);

@@ -12,6 +12,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{category}', [CategoryController::class, 'show']);
@@ -50,5 +52,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // CHECKOUT
     Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
+
+    // ORDERS
+    Route::get('/orders', [App\Http\Controllers\Api\OrderController::class, 'index']);
+    Route::get('/orders/{order}', [App\Http\Controllers\Api\OrderController::class, 'show']);
+    Route::patch('/orders/{order}/status', [App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
+    Route::post('/orders/{order}/cancel', [App\Http\Controllers\Api\OrderController::class, 'cancel']);
+
+    // ADMIN ORDERS
+    Route::middleware('admin')->group(function () {
+        Route::get('/admin/orders', [App\Http\Controllers\Api\OrderController::class, 'all']);
+    });
 
 });

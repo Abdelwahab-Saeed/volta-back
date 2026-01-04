@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Address;
 use App\Models\Coupon;
+use App\Models\Product;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
@@ -19,37 +22,50 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'address_id' => 'required|exists:addresses,id',
+            'full_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:255',
+            'phone_number_backup' => 'nullable|string|max:255',
+            'city' => 'required|string|max:255',
+            'state' => 'required|string|max:255',
+            'shipping_way' => 'required|string|in:home,office,pickup',
             'coupon_code' => 'nullable|string|exists:coupons,code',
-            'payment_method' => 'required|in:cash,card,wallet,valu',
+            'payment_method' => ['required', Rule::in(PaymentMethod::values())],
             'notes' => 'nullable|string',
         ]);
 
         $user = Auth::user();
-        $cart = $user->cart;
+        
+        // Eager load cart with items and products to eliminate N+1 queries
+        $cart = $user->cart()->with('items.product')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 400);
         }
 
-        // Validate Address
-        $address = Address::where('id', $request->address_id)->where('user_id', $user->id)->first();
-        if (!$address) {
-            return response()->json(['message' => 'Invalid address selected'], 403);
-        }
-
-        // Calculate Subtotal
+        // Calculate Subtotal using price snapshots
         $subtotal = 0;
         foreach ($cart->items as $item) {
-            $subtotal += $item->product->price * $item->quantity;
+            $effectivePrice = $item->getEffectivePrice();
+            $subtotal += $effectivePrice * $item->quantity;
         }
 
-        // Apply Coupon
+        // Apply Coupon with improved validation
         $discountAmount = 0;
         $coupon = null;
 
         if ($request->coupon_code) {
             $coupon = Coupon::where('code', $request->coupon_code)->first();
+            
+            // Check if user has already used this coupon
+            if ($coupon && $coupon->hasBeenUsedByUser($user->id)) {
+                return response()->json(['message' => 'You have already used this coupon'], 422);
+            }
+            
+            // Check max uses limit
+            if ($coupon && $coupon->max_uses && $coupon->times_used >= $coupon->max_uses) {
+                return response()->json(['message' => 'Coupon usage limit reached'], 422);
+            }
+            
             if ($coupon && $coupon->isValid($subtotal)) {
                 $discountAmount = $coupon->calculateDiscount($subtotal);
             } else {
@@ -63,12 +79,29 @@ class CheckoutController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create Order
+            // Validate stock availability for all items before creating order
+            foreach ($cart->items as $item) {
+                if ($item->product->stock < $item->quantity) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Insufficient stock',
+                        'product' => $item->product->name,
+                        'available' => $item->product->stock,
+                        'requested' => $item->quantity,
+                    ], 422);
+                }
+            }
+
+            // Create Order with enum values
             $order = Order::create([
                 'user_id' => $user->id,
-                'address_id' => $address->id,
-                'shipping_address_snapshot' => $address->toArray(), // Snapshot
-                'status' => 'pending',
+                'full_name' => $request->full_name,
+                'phone_number' => $request->phone_number,
+                'phone_number_backup' => $request->phone_number_backup,
+                'city' => $request->city,
+                'state' => $request->state,
+                'shipping_way' => $request->shipping_way,
+                'status' => OrderStatus::PENDING->value,
                 'payment_method' => $request->payment_method,
                 'notes' => $request->notes,
                 'subtotal' => $subtotal,
@@ -78,33 +111,47 @@ class CheckoutController extends Controller
                 'coupon_code' => $coupon ? $coupon->code : null,
             ]);
 
-            // Create Order Items
+            // Create Order Items using price snapshots
             foreach ($cart->items as $item) {
+                $effectivePrice = $item->getEffectivePrice();
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'quantity' => $item->quantity,
-                    'price' => $item->product->price,
-                    'total' => $item->product->price * $item->quantity,
+                    'price' => $effectivePrice,
+                    'total' => $effectivePrice * $item->quantity,
                 ]);
+
+                // Decrement product stock
+                $item->product->decrement('stock', $item->quantity);
             }
 
             // Update Coupon Usage
             if ($coupon) {
                 $coupon->increment('times_used');
+                
+                // Record that this user has used this coupon
+                $coupon->users()->attach($user->id, ['order_id' => $order->id]);
             }
 
             // Clear Cart
             $cart->items()->delete();
-            // Optional: $cart->delete(); if you want to delete the cart container itself, but usually we just empty items.
 
             DB::commit();
 
-            return response()->json($order->load('items'), 201);
+            // Return improved response with eager loaded relationships
+            return response()->json([
+                'message' => 'Order created successfully',
+                'order' => $order->load('items.product'),
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Checkout failed', 'error' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => 'Checkout failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }

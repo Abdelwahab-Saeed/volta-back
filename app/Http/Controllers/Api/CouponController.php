@@ -76,7 +76,8 @@ class CouponController extends Controller
     }
 
     /**
-     * Apply a coupon to verify its validity.
+     * Apply a coupon to verify its validity and calculate discount.
+     * Does NOT increment usage counts.
      */
     public function apply(Request $request)
     {
@@ -85,17 +86,34 @@ class CouponController extends Controller
             'cart_total' => 'required|numeric|min:0',
         ]);
 
+        $user = auth('sanctum')->user(); // Get user if authenticated
+
         $coupon = Coupon::where('code', $request->code)->first();
 
         if (!$coupon) {
             return response()->json(['message' => 'Invalid coupon code'], 404);
         }
 
+        // 1. Check if user has already used this coupon (if user is logged in)
+        if ($user && $coupon->hasBeenUsedByUser($user->id)) {
+            return response()->json(['message' => 'You have already used this coupon'], 422);
+        }
+
+        // 2. Check max uses limit
+        if ($coupon->max_uses && $coupon->times_used >= $coupon->max_uses) {
+            return response()->json(['message' => 'Coupon usage limit reached'], 422);
+        }
+
+        // 3. General validity (expiry, min amount)
         if (!$coupon->isValid($request->cart_total)) {
-             return response()->json(['message' => 'Coupon is not valid for this order'], 422);
+             // isValid check might return false for other reasons, let's trust it or improve it to return reason
+             // For now, consistent generic message or we can check specific conditions if needed
+             // But isValid checks dates and min_amount.
+             return response()->json(['message' => 'Coupon is not valid for this order (check minimum amount or expiry)'], 422);
         }
 
         return response()->json([
+            'message' => 'Coupon applied successfully',
             'coupon' => $coupon,
             'discount_amount' => $coupon->calculateDiscount($request->cart_total),
         ]);

@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('address_id')->nullable()->constrained('addresses')->nullOnDelete(); // Relationship
-            $table->json('shipping_address_snapshot'); // Snapshot
+            $table->string('full_name');
+            $table->string('phone_number');
+            $table->string('phone_number_backup')->nullable();
+            $table->string('city');
+            $table->string('state');
+            $table->string('shipping_way')->default('home');
             $table->string('status')->default('pending'); // pending, processing, completed, cancelled
             $table->decimal('subtotal', 10, 2);
             $table->decimal('discount_amount', 10, 2)->default(0);

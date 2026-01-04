@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 
 class Order extends Model
 {
@@ -11,8 +13,12 @@ class Order extends Model
 
     protected $fillable = [
         'user_id',
-        'address_id',
-        'shipping_address_snapshot',
+        'full_name',
+        'phone_number',
+        'phone_number_backup',
+        'city',
+        'state',
+        'shipping_way',
         'status',
         'payment_method',
         'notes',
@@ -24,7 +30,6 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'shipping_address_snapshot' => 'array',
         'subtotal' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
@@ -40,8 +45,5 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function address()
-    {
-        return $this->belongsTo(Address::class); // Optional relation if address still exists
-    }
+
 }

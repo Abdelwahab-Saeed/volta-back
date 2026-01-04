@@ -58,4 +58,22 @@ class Coupon extends Model
         }
         return 0;
     }
+
+    /**
+     * Users who have used this coupon
+     */
+    public function users()
+    {
+        return $this->belongsToMany(User::class)
+            ->withPivot('order_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if a specific user has already used this coupon
+     */
+    public function hasBeenUsedByUser($userId): bool
+    {
+        return $this->users()->where('user_id', $userId)->exists();
+    }
 }
