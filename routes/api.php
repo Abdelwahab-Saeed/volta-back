@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/cart/{cartItem}', [App\Http\Controllers\Api\CartController::class, 'destroy']);
 
     // ADDRESSES
+    Route::get('addresses/user', [App\Http\Controllers\Api\AddressController::class, 'myAddresses']);
     Route::apiResource('addresses', App\Http\Controllers\Api\AddressController::class);
 
     // COUPONS

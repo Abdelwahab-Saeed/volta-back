@@ -48,8 +48,9 @@ class AddressController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Address $address)
+    public function show($id)   
     {
+        $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -59,8 +60,9 @@ class AddressController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Address $address)
+    public function update(Request $request, $id)
     {
+        $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -91,8 +93,9 @@ class AddressController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Address $address)
+    public function destroy($id)
     {
+        $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -100,5 +103,22 @@ class AddressController extends Controller
         $address->delete();
 
         return response()->json(['message' => 'Address deleted']);
+    }
+
+    /**
+     * Get all addresses for the authenticated user.
+     */
+    public function myAddresses()
+    {
+        $addresses = Address::where('user_id', Auth::id())->get();
+        if ($addresses->isEmpty()) {
+            $addresses = [];
+        }
+        return response()->json(
+            [
+                'message' => 'Addresses retrieved',
+                'addresses' => $addresses
+            ]
+        );
     }
 }
