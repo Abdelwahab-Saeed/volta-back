@@ -1,0 +1,97 @@
+@extends('admin.layouts.app')
+
+@section('title', 'تعديل المنتج')
+
+@section('content')
+<div class="max-w-4xl bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-right">
+    <div class="flex items-center space-x-reverse space-x-6 mb-8 pb-8 border-b border-gray-100">
+        @if($product->image)
+            <img src="{{ asset('storage/' . $product->image) }}" class="w-24 h-24 rounded-2xl object-cover border border-gray-200 shadow-sm">
+        @endif
+        <div>
+            <h3 class="text-2xl font-bold text-gray-800">تعديل "{{ $product->name }}"</h3>
+            <p class="text-gray-400 font-medium">آخر تحديث: {{ $product->updated_at->diffForHumans() }}</p>
+        </div>
+    </div>
+
+    <form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Basic Info -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">المعلومات الأساسية</h3>
+                <div>
+                    <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم المنتج</label>
+                    <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                </div>
+
+                <div>
+                    <label for="category_id" class="block text-sm font-bold text-gray-700 mb-2">القسم</label>
+                    <select name="category_id" id="category_id" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                        <option value="">اختر القسم</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                    <textarea name="description" id="description" rows="5" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description', $product->description) }}</textarea>
+                </div>
+            </div>
+
+            <!-- Pricing & Inventory -->
+            <div class="space-y-6">
+                <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">الأسعار والمخزون</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="price" class="block text-sm font-bold text-gray-700 mb-2">السعر (ج.م)</label>
+                        <input type="number" step="0.01" name="price" id="price" value="{{ old('price', $product->price) }}" required
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                    <div>
+                        <label for="discount" class="block text-sm font-bold text-gray-700 mb-2">الخصم (%)</label>
+                        <input type="number" step="1" name="discount" id="discount" value="{{ old('discount', $product->discount) }}"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="stock" class="block text-sm font-bold text-gray-700 mb-2">كمية المخزون</label>
+                    <input type="number" name="stock" id="stock" value="{{ old('stock', $product->stock) }}" required
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                </div>
+
+                <div>
+                    <label for="image" class="block text-sm font-bold text-gray-700 mb-2">تغيير الصورة</label>
+                    <input type="file" name="image" id="image" accept="image/*"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-400 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <p class="mt-2 text-xs text-gray-400 italic">اتركه فارغاً للاحتفاظ بالصورة الحالية.</p>
+                </div>
+
+                <!-- Status -->
+                <div class="flex items-center">
+                    <input type="checkbox" name="status" id="status" value="1" {{ $product->status ? 'checked' : '' }}
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="status" class="mr-2 text-sm font-bold text-gray-700">متاح للبيع</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 flex space-x-reverse space-x-4 border-t border-gray-100 pt-8">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg font-bold transition-all shadow-md">
+                تحديث المنتج
+            </button>
+            <a href="{{ route('admin.products.index') }}" class="px-10 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-all font-bold">
+                إلغاء
+            </a>
+        </div>
+    </form>
+</div>
+@endsection
