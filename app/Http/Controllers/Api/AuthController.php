@@ -9,8 +9,12 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
+use App\Traits\ApiResponse;
+
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     // REGISTER
     public function register(Request $request)
     {
@@ -30,10 +34,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->successResponse([
             'user' => $user,
             'token' => $token,
-        ], 201);
+        ], 'تم إنشاء الحساب بنجاح', 201);
     }
 
     // LOGIN
@@ -47,17 +51,15 @@ class AuthController extends Controller
         $user = User::where('email', $request->identifier)->orWhere('phone_number', $request->identifier)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email or password' => ['Invalid credentials'],
-            ]);
+            return $this->errorResponse('بيانات الدخول غير صحيحة', 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->successResponse([
             'user' => $user,
             'token' => $token,
-        ]);
+        ], 'تم تسجيل الدخول بنجاح');
     }
 
     // LOGOUT
@@ -65,15 +67,13 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
+        return $this->successResponse(null, 'تم تسجيل الخروج بنجاح');
     }
 
     // AUTH USER
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return $this->successResponse($request->user(), 'تم جلب بيانات المستخدم بنجاح');
     }
 
     // UPDATE PROFILE
@@ -101,10 +101,7 @@ class AuthController extends Controller
         $user->fill($data);
         $user->save();
 
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $user,
-        ]);
+        return $this->successResponse($user, 'تم تحديث الملف الشخصي بنجاح');
     }
 
     // CHANGE PASSWORD
@@ -119,8 +116,6 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return response()->json([
-            'message' => 'Password changed successfully',
-        ]);
+        return $this->successResponse(null, 'تم تغيير كلمة المرور بنجاح');
     }
 }

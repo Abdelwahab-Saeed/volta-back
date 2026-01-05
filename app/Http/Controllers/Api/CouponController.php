@@ -8,14 +8,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
+use App\Traits\ApiResponse;
+
 class CouponController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return response()->json(Coupon::all());
+        return $this->successResponse(Coupon::all(), 'تم جلب الكوبونات بنجاح');
     }
 
     /**
@@ -35,7 +39,7 @@ class CouponController extends Controller
 
         $coupon = Coupon::create($validated);
 
-        return response()->json($coupon, 201);
+        return $this->successResponse($coupon, 'تم إضافة الكوبون بنجاح', 201);
     }
 
     /**
@@ -43,7 +47,7 @@ class CouponController extends Controller
      */
     public function show(Coupon $coupon)
     {
-        return response()->json($coupon);
+        return $this->successResponse($coupon, 'تم جلب بيانات الكوبون بنجاح');
     }
 
     /**
@@ -63,7 +67,7 @@ class CouponController extends Controller
 
         $coupon->update($validated);
 
-        return response()->json($coupon);
+        return $this->successResponse($coupon, 'تم تحديث بيانات الكوبون بنجاح');
     }
 
     /**
@@ -72,7 +76,7 @@ class CouponController extends Controller
     public function destroy(Coupon $coupon)
     {
         $coupon->delete();
-        return response()->json(['message' => 'Coupon deleted']);
+        return $this->successResponse(null, 'تم حذف الكوبون بنجاح');
     }
 
     /**
@@ -91,31 +95,27 @@ class CouponController extends Controller
         $coupon = Coupon::where('code', $request->code)->first();
 
         if (!$coupon) {
-            return response()->json(['message' => 'Invalid coupon code'], 404);
+            return $this->errorResponse('كود الكوبون غير صحيح', 404);
         }
 
         // 1. Check if user has already used this coupon (if user is logged in)
         if ($user && $coupon->hasBeenUsedByUser($user->id)) {
-            return response()->json(['message' => 'You have already used this coupon'], 422);
+            return $this->errorResponse('لقد قمت باستخدام هذا الكوبون من قبل', 422);
         }
 
         // 2. Check max uses limit
         if ($coupon->max_uses && $coupon->times_used >= $coupon->max_uses) {
-            return response()->json(['message' => 'Coupon usage limit reached'], 422);
+            return $this->errorResponse('عذراً، وصل الكوبون للحد الأقصى من الاستخدام', 422);
         }
 
         // 3. General validity (expiry, min amount)
         if (!$coupon->isValid($request->cart_total)) {
-             // isValid check might return false for other reasons, let's trust it or improve it to return reason
-             // For now, consistent generic message or we can check specific conditions if needed
-             // But isValid checks dates and min_amount.
-             return response()->json(['message' => 'Coupon is not valid for this order (check minimum amount or expiry)'], 422);
+             return $this->errorResponse('الكوبون غير صالح لهذا الطلب (تحقق من الحد الأدنى أو تاريخ انتهاء الصلاحية)', 422);
         }
 
-        return response()->json([
-            'message' => 'Coupon applied successfully',
+        return $this->successResponse([
             'coupon' => $coupon,
             'discount_amount' => $coupon->calculateDiscount($request->cart_total),
-        ]);
+        ], 'تم تطبيق الكوبون بنجاح');
     }
 }

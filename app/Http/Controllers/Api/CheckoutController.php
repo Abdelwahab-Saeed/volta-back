@@ -14,8 +14,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
+use App\Traits\ApiResponse;
+
 class CheckoutController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Handle the incoming checkout request.
      */
@@ -39,7 +43,7 @@ class CheckoutController extends Controller
         $cart = $user->cart()->with('items.product')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty'], 400);
+            return $this->errorResponse('السلة فارغة حالياً', 400);
         }
 
         // Calculate Subtotal using price snapshots
@@ -58,18 +62,18 @@ class CheckoutController extends Controller
             
             // Check if user has already used this coupon
             if ($coupon && $coupon->hasBeenUsedByUser($user->id)) {
-                return response()->json(['message' => 'You have already used this coupon'], 422);
+                return $this->errorResponse('لقد قمت باستخدام هذا الكوبون من قبل', 422);
             }
             
             // Check max uses limit
             if ($coupon && $coupon->max_uses && $coupon->times_used >= $coupon->max_uses) {
-                return response()->json(['message' => 'Coupon usage limit reached'], 422);
+                return $this->errorResponse('عذراً، وصل الكوبون للحد الأقصى من الاستخدام', 422);
             }
             
             if ($coupon && $coupon->isValid($subtotal)) {
                 $discountAmount = $coupon->calculateDiscount($subtotal);
             } else {
-                return response()->json(['message' => 'Invalid or expired coupon'], 422);
+                return $this->errorResponse('الكوبون غير صالح أو انتهت صلاحيته', 422);
             }
         }
 
@@ -83,12 +87,11 @@ class CheckoutController extends Controller
             foreach ($cart->items as $item) {
                 if ($item->product->stock < $item->quantity) {
                     DB::rollBack();
-                    return response()->json([
-                        'message' => 'Insufficient stock',
+                    return $this->errorResponse("المخزون غير كافٍ للمنتج: {$item->product->name}", 422, [
                         'product' => $item->product->name,
                         'available' => $item->product->stock,
                         'requested' => $item->quantity,
-                    ], 422);
+                    ]);
                 }
             }
 
@@ -140,18 +143,11 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // Return improved response with eager loaded relationships
-            return response()->json([
-                'message' => 'Order created successfully',
-                'order' => $order->load('items.product'),
-            ], 201);
+            return $this->successResponse($order->load('items.product'), 'تم إتمام الطلب بنجاح', 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Checkout failed',
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->errorResponse('حدث خطأ أثناء إتمام الطلب', 500, ['error' => $e->getMessage()]);
         }
     }
 }

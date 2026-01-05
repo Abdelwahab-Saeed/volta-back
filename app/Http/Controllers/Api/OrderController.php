@@ -9,8 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
+use App\Traits\ApiResponse;
+
 class OrderController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Get all orders for the authenticated user.
      */
@@ -21,7 +25,7 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return response()->json($orders);
+        return $this->successResponse($orders, 'تم جلب طلباتك بنجاح');
     }
 
     /**
@@ -31,10 +35,10 @@ class OrderController extends Controller
     {
         // Ensure user owns the order
         if ($order->user_id !== Auth::id()) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+             return $this->errorResponse('غير مصرح لك بالوصول لهذا الطلب', 403);
         }
 
-        return response()->json($order->load('items.product'));
+        return $this->successResponse($order->load('items.product'), 'تم جلب بيانات الطلب بنجاح');
     }
 
     /**
@@ -47,16 +51,6 @@ class OrderController extends Controller
             'status' => ['required', Rule::in(OrderStatus::values())],
         ]);
 
-        // Optional: specific logic for users cancelling their own orders
-        // if (Auth::id() === $order->user_id) {
-        //     if ($request->status !== OrderStatus::CANCELLED->value) {
-        //         return response()->json(['message' => 'Users can only cancel orders'], 403);
-        //     }
-        //     if ($order->status !== OrderStatus::PENDING->value) {
-        //          return response()->json(['message' => 'Cannot cancel processed order'], 422);
-        //     }
-        // }
-
         $oldStatus = $order->status;
         $order->status = $request->status;
         $order->save();
@@ -68,10 +62,7 @@ class OrderController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Order status updated successfully',
-            'order' => $order
-        ]);
+        return $this->successResponse($order, 'تم تحديث حالة الطلب بنجاح');
     }
 
     /**
@@ -80,7 +71,7 @@ class OrderController extends Controller
     public function all()
     {
         $orders = Order::with('items.product', 'user')->latest()->get();
-        return response()->json($orders);
+        return $this->successResponse($orders, 'تم جلب جميع الطلبات بنجاح');
     }
 
     /**
@@ -89,11 +80,11 @@ class OrderController extends Controller
     public function cancel(Order $order)
     {
         if ($order->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->errorResponse('غير مصرح لك بإلغاء هذا الطلب', 403);
         }
 
         if ($order->status !== OrderStatus::PENDING->value) {
-            return response()->json(['message' => 'Cannot cancel order that is not pending'], 422);
+            return $this->errorResponse('لا يمكن إلغاء طلب غير معلق', 422);
         }
 
         $order->status = OrderStatus::CANCELLED->value;
@@ -104,6 +95,6 @@ class OrderController extends Controller
             $item->product->increment('stock', $item->quantity);
         }
 
-        return response()->json(['message' => 'Order cancelled successfully', 'order' => $order]);
+        return $this->successResponse($order, 'تم إلغاء الطلب بنجاح');
     }
 }

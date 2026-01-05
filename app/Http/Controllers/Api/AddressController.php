@@ -7,14 +7,18 @@ use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Traits\ApiResponse;
+
 class AddressController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return response()->json(Auth::user()->addresses);
+        return $this->successResponse(Auth::user()->addresses, 'تم جلب العناوين بنجاح');
     }
 
     /**
@@ -42,7 +46,7 @@ class AddressController extends Controller
 
         $address = Auth::user()->addresses()->create($validated);
 
-        return response()->json($address, 201);
+        return $this->successResponse($address, 'تم إضافة العنوان بنجاح', 201);
     }
 
     /**
@@ -52,9 +56,9 @@ class AddressController extends Controller
     {
         $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->errorResponse('غير مصرح لك بالوصول لهذا العنوان', 403);
         }
-        return response()->json($address);
+        return $this->successResponse($address, 'تم جلب بيانات العنوان بنجاح');
     }
 
     /**
@@ -64,7 +68,7 @@ class AddressController extends Controller
     {
         $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->errorResponse('غير مصرح لك بتعديل هذا العنوان', 403);
         }
 
         $validated = $request->validate([
@@ -87,7 +91,7 @@ class AddressController extends Controller
 
         $address->update($validated);
 
-        return response()->json($address);
+        return $this->successResponse($address, 'تم تحديث العنوان بنجاح');
     }
 
     /**
@@ -97,12 +101,12 @@ class AddressController extends Controller
     {
         $address = Address::findOrFail($id);
         if ($address->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->errorResponse('غير مصرح لك بحذف هذا العنوان', 403);
         }
 
         $address->delete();
 
-        return response()->json(['message' => 'Address deleted']);
+        return $this->successResponse(null, 'تم حذف العنوان بنجاح');
     }
 
     /**
@@ -111,14 +115,6 @@ class AddressController extends Controller
     public function myAddresses()
     {
         $addresses = Address::where('user_id', Auth::id())->get();
-        if ($addresses->isEmpty()) {
-            $addresses = [];
-        }
-        return response()->json(
-            [
-                'message' => 'Addresses retrieved',
-                'addresses' => $addresses
-            ]
-        );
+        return $this->successResponse($addresses, 'تم جلب عناوينك الخاصة بنجاح');
     }
 }

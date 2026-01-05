@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Traits\ApiResponse;
+
 class WishlistController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Get all products in the user's wishlist.
      */
@@ -15,7 +19,7 @@ class WishlistController extends Controller
     {
         $products = Auth::user()->wishlist()->with('category')->get();
 
-        return response()->json($products);
+        return $this->successResponse($products, 'تم جلب قائمة المفضلة بنجاح');
     }
 
     /**
@@ -30,6 +34,6 @@ class WishlistController extends Controller
         $user = Auth::user();
         $user->wishlist()->toggle($request->product_id);
 
-        return response()->json(['message' => 'Wishlist updated successfully']);
+        return $this->successResponse(null, 'تم تحديث قائمة المفضلة بنجاح');
     }
 }

@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+use App\Traits\ApiResponse;
+
 class ComparisonController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Get all products in the user's comparison list.
      */
@@ -15,7 +19,7 @@ class ComparisonController extends Controller
     {
         $products = Auth::user()->comparisonList()->with('category')->get();
 
-        return response()->json($products);
+        return $this->successResponse($products, 'تم جلب قائمة المقارنة بنجاح');
     }
 
     /**
@@ -32,17 +36,17 @@ class ComparisonController extends Controller
         
         // Check if the product is already in the comparison list
         if ($user->comparisonList()->where('product_id', $request->product_id)->exists()) {
-            return response()->json(['message' => 'Product is already in comparison list'], 422);
+            return $this->errorResponse('المنتج موجود بالفعل في قائمة المقارنة', 422);
         }
 
         // Check if the limit of 2 is reached
         if ($user->comparisonList()->count() >= 2) {
-            return response()->json(['message' => 'Comparison list is full. Maximum of 2 products allowed.'], 422);
+            return $this->errorResponse('عذراً، يمكنك إضافة منتجين فقط للمقارنة', 422);
         }
 
         $user->comparisonList()->attach($request->product_id);
 
-        return response()->json(['message' => 'Product added to comparison list successfully']);
+        return $this->successResponse(null, 'تم إضافة المنتج لقائمة المقارنة بنجاح');
     }
 
     /**
@@ -53,6 +57,6 @@ class ComparisonController extends Controller
         $user = Auth::user();
         $user->comparisonList()->detach($productId);
 
-        return response()->json(['message' => 'Product removed from comparison list successfully']);
+        return $this->successResponse(null, 'تم إزالة المنتج من قائمة المقارنة بنجاح');
     }
 }

@@ -7,14 +7,16 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+use App\Traits\ApiResponse;
+
 class CategoryController extends Controller
 {
+    use ApiResponse;
+
     // GET ALL
     public function index()
     {
-        return response()->json(
-            Category::latest()->get()
-        );
+        return $this->successResponse(Category::latest()->get(), 'تم جلب الأقسام بنجاح');
     }
 
     // CREATE
@@ -33,13 +35,13 @@ class CategoryController extends Controller
 
         $category = Category::create($data);
 
-        return response()->json($category, 201);
+        return $this->successResponse($category, 'تم إضافة القسم بنجاح', 201);
     }
 
     // SHOW
     public function show(Category $category)
     {
-        return response()->json($category);
+        return $this->successResponse($category, 'تم جلب بيانات القسم بنجاح');
     }
 
     // UPDATE
@@ -54,7 +56,6 @@ class CategoryController extends Controller
 
         if ($request->hasFile('image')) {
             if ($category->image) {
-                // storage delete requires importing Storage facade, but file replace is simpler for now or added later.
                 Storage::disk('public')->delete($category->image);
             }
             $data['image'] = $request->file('image')->store('categories', 'public');
@@ -62,7 +63,7 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return response()->json($category);
+        return $this->successResponse($category, 'تم تحديث بيانات القسم بنجاح');
     }
 
     // DELETE
@@ -70,9 +71,7 @@ class CategoryController extends Controller
     {
         $category->delete();
 
-        return response()->json([
-            'message' => 'Category deleted successfully'
-        ]);
+        return $this->successResponse(null, 'تم حذف القسم بنجاح');
     }
 }
 

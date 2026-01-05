@@ -7,8 +7,12 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+use App\Traits\ApiResponse;
+
 class ProductController extends Controller
 {
+    use ApiResponse;
+
     // GET PRODUCTS (public for users)
     public function index(Request $request)
     {
@@ -37,9 +41,8 @@ class ProductController extends Controller
             ->orderBy('price', $sort)
             ->paginate($limit);
 
-        return response()->json([
-            'data' => $products->items(),
-
+        return $this->successResponse([
+            'items' => $products->items(),
             'pagination' => [
                 'current_page' => $products->currentPage(),
                 'per_page'     => $products->perPage(),
@@ -50,10 +53,8 @@ class ProductController extends Controller
                 'has_next'     => $products->hasMorePages(),
                 'has_prev'     => $products->currentPage() > 1,
             ],
-        ]);
+        ], 'تم جلب المنتجات بنجاح');
     }
-
-
 
     // STORE (ADMIN)
     public function store(Request $request)
@@ -75,16 +76,14 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
-        return response()->json($product, 201);
+        return $this->successResponse($product, 'تم إضافة المنتج بنجاح', 201);
     }
 
     // SHOW
     public function show(Request $request, $id)
     {
         $product = Product::findOrFail($id);
-        return response()->json(
-            $product->load('category')
-        );
+        return $this->successResponse($product->load('category'), 'تم جلب بيانات المنتج بنجاح');
     }
 
     // UPDATE (ADMIN)
@@ -113,7 +112,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return response()->json($product);
+        return $this->successResponse($product, 'تم تحديث بيانات المنتج بنجاح');
     }
 
     // DELETE (ADMIN)
@@ -127,8 +126,6 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return response()->json([
-            'message' => 'Product deleted successfully'
-        ]);
+        return $this->successResponse(null, 'تم حذف المنتج بنجاح');
     }
 }
