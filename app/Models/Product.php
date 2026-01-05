@@ -37,5 +37,15 @@ class Product extends Model
     public function getFinalPriceAttribute() {
         return $this->price - ($this->price * $this->discount / 100);
     }
+
+    public function wishlistedBy()
+    {
+        return $this->belongsToMany(User::class, 'wishlists')->withTimestamps();
+    }
+
+    public function comparedBy()
+    {
+        return $this->belongsToMany(User::class, 'comparisons')->withTimestamps();
+    }
 }
 

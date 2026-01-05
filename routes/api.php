@@ -60,6 +60,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/orders/{order}/status', [App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
     Route::post('/orders/{order}/cancel', [App\Http\Controllers\Api\OrderController::class, 'cancel']);
 
+    // WISHLIST
+    Route::get('/wishlist', [App\Http\Controllers\Api\WishlistController::class, 'index']);
+    Route::post('/wishlist/toggle', [App\Http\Controllers\Api\WishlistController::class, 'toggle']);
+
+    // COMPARISON
+    Route::get('/comparison', [App\Http\Controllers\Api\ComparisonController::class, 'index']);
+    Route::post('/comparison', [App\Http\Controllers\Api\ComparisonController::class, 'store']);
+    Route::delete('/comparison/{product}', [App\Http\Controllers\Api\ComparisonController::class, 'destroy']);
+
     // ADMIN ORDERS
     Route::middleware('admin')->group(function () {
         Route::get('/admin/orders', [App\Http\Controllers\Api\OrderController::class, 'all']);
