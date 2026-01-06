@@ -96,5 +96,10 @@
             </tbody>
         </table>
     </div>
+    @if($products->hasPages())
+    <div class="p-6 bg-gray-50/50 border-t border-gray-100">
+        {{ $products->links() }}
+    </div>
+    @endif
 </div>
 @endsection

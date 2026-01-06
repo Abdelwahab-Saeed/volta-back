@@ -128,4 +128,22 @@ class ProductController extends Controller
 
         return $this->successResponse(null, 'تم حذف المنتج بنجاح');
     }
+
+    /**
+     * Get best selling products.
+     */
+    public function bestSelling(Request $request)
+    {
+        $limit = $request->get('limit', 10);
+
+        $products = Product::with('category')
+            ->withCount(['orderItems as total_sold' => function ($query) {
+                $query->select(\Illuminate\Support\Facades\DB::raw('sum(quantity)'));
+            }])
+            ->orderByDesc('total_sold')
+            ->take($limit)
+            ->get();
+
+        return $this->successResponse($products, 'تم جلب المنتجات الأكثر مبيعاً بنجاح');
+    }
 }

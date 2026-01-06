@@ -12,7 +12,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->get();
+        $users = User::latest()->paginate(15);
         return view('admin.users.index', compact('users'));
     }
 
@@ -54,7 +54,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8|confirmed',
+            'password' => 'nullable|min:8',
             'role' => 'required|in:user,admin',
             'phone_number' => 'nullable|string|max:20',
             'image' => 'nullable|image|max:2048',

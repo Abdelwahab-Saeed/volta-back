@@ -25,5 +25,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectTo(guests: '/admin/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                $seconds = $e->getHeaders()['Retry-After'] ?? 60;
+                $minutes = ceil($seconds / 60);
+                
+                $message = $minutes > 1 
+                    ? "لقد تجاوزت عدد المحاولات المسموح بها. يرجى المحاولة مرة أخرى بعد {$minutes} دقائق."
+                    : "لقد تجاوزت عدد المحاولات المسموح بها. يرجى المحاولة مرة أخرى بعد دقيقة واحدة.";
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => null
+                ], 429);
+            }
+        });
     })->create();

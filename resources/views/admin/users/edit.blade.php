@@ -26,12 +26,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="name" class="block text-sm font-bold text-gray-700 mb-2">الاسم الكامل</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required
+                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                 </div>
                 <div>
                     <label for="email" class="block text-sm font-bold text-gray-700 mb-2">البريد الإلكتروني</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
+                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                 </div>
             </div>
@@ -39,7 +39,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="role" class="block text-sm font-bold text-gray-700 mb-2">الصلاحية</label>
-                    <select name="role" id="role" required
+                    <select name="role" id="role"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                         <option value="user" {{ old('role', $user->role) == 'user' ? 'selected' : '' }}>مستخدم</option>
                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>مسؤول</option>

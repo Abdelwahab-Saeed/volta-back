@@ -13,13 +13,13 @@
                 <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">المعلومات الأساسية</h3>
                 <div>
                     <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم المنتج</label>
-                    <input type="text" name="name" id="name" value="{{ old('name') }}" required placeholder="مثلاً: آيفون 15 برو"
+                    <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="مثلاً: آيفون 15 برو"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                 </div>
 
                 <div>
                     <label for="category_id" class="block text-sm font-bold text-gray-700 mb-2">القسم</label>
-                    <select name="category_id" id="category_id" required
+                    <select name="category_id" id="category_id"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                         <option value="">اختر القسم</option>
                         @foreach($categories as $category)
@@ -30,7 +30,7 @@
 
                 <div>
                     <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
-                    <textarea name="description" id="description" rows="5" required placeholder="اكتب وصفاً تفصيلياً للمنتج..."
+                    <textarea name="description" id="description" rows="5" placeholder="اكتب وصفاً تفصيلياً للمنتج..."
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description') }}</textarea>
                 </div>
             </div>
@@ -41,19 +41,19 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="price" class="block text-sm font-bold text-gray-700 mb-2">السعر (ج.م)</label>
-                        <input type="number" step="0.01" name="price" id="price" value="{{ old('price') }}" required
+                        <input type="number" name="price" id="price" value="{{ old('price') }}"
                             class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                     </div>
                     <div>
                         <label for="discount" class="block text-sm font-bold text-gray-700 mb-2">الخصم (%)</label>
-                        <input type="number" step="1" name="discount" id="discount" value="{{ old('discount', 0) }}"
+                        <input type="number" name="discount" id="discount" value="{{ old('discount', 0) }}"
                             class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                     </div>
                 </div>
 
                 <div>
                     <label for="stock" class="block text-sm font-bold text-gray-700 mb-2">كمية المخزون</label>
-                    <input type="number" name="stock" id="stock" value="{{ old('stock', 0) }}" required
+                    <input type="number" name="stock" id="stock" value="{{ old('stock', 0) }}"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                 </div>
 

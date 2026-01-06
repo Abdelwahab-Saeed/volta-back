@@ -11,7 +11,7 @@
             <!-- Name -->
             <div>
                 <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم القسم</label>
-                <input type="text" name="name" id="name" value="{{ old('name') }}" required placeholder="مثلاً: هواتف ذكية"
+                <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="مثلاً: هواتف ذكية"
                     class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
             </div>
 

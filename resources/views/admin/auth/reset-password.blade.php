@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - فولتا</title>
+    <title>تعيين كلمة المرور - فولتا</title>
     <link rel="icon" type="image/png" href="{{ asset('Logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -15,8 +15,8 @@
     <div class="w-full max-w-md p-8">
         <div class="bg-white rounded-2xl shadow-2xl p-10 mt-12">
             <div class="text-center mb-10">
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight mb-2">فولتا <span class="text-blue-600">لوحة التحكم</span></h1>
-                <p class="text-slate-500 font-medium">الرجاء تسجيل الدخول للوصول إلى لوحة الإدارة</p>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight mb-2">فولتا <span class="text-blue-600">تعيين المرور</span></h1>
+                <p class="text-slate-500 font-medium">أدخل كلمة المرور الجديدة لتأكيد التغيير</p>
             </div>
 
             @if($errors->any())
@@ -25,24 +25,30 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.login.post') }}" method="POST" class="space-y-6 text-right">
+            <form action="{{ route('admin.password.update') }}" method="POST" class="space-y-6 text-right">
                 @csrf
+                <input type="hidden" name="token" value="{{ $token }}">
+                
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني</label>
-                    <input type="email" name="email" placeholder="admin@volta.com"
+                    <input type="email" name="email" value="{{ $email ?? old('email') }}" required
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left">
                 </div>
+
                 <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-bold text-slate-700">كلمة المرور</label>
-                        <a href="{{ route('admin.password.request') }}" class="text-xs font-bold text-blue-600 hover:underline">نسيت كلمة المرور؟</a>
-                    </div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور الجديدة</label>
                     <input type="password" name="password" placeholder="••••••••" required
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">تأكيد كلمة المرور</label>
+                    <input type="password" name="password_confirmation" placeholder="••••••••" required
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-left">
                 </div>
                 
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
-                    تسجيل الدخول
+                    تغيير كلمة المرور
                 </button>
             </form>
         </div>

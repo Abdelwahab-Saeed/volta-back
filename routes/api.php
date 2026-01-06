@@ -9,6 +9,12 @@ use App\Http\Controllers\Api\CategoryController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// PASSWORD RESET
+Route::middleware('throttle:password-reset')->group(function () {
+    Route::post('/password/forgot', [App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword']);
+    Route::post('/password/reset', [App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -18,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
+    Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index']);
+
     Route::middleware('admin')->group(function () {
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
@@ -25,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // USERS
+    Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/{product}', [ProductController::class, 'show']);
 

@@ -10,6 +10,7 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
+        app()->setLocale('ar');
         if ($request->user()->role !== 'admin') {
             return response()->json([
                 'message' => 'Unauthorized'

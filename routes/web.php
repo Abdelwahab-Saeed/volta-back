@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\BannerController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -13,6 +15,12 @@ Route::get('/', function () {
 // Admin Auth Routes
 Route::get('admin/login', [AuthController::class, 'showLogin'])->name('admin.login');
 Route::post('admin/login', [AuthController::class, 'login'])->name('admin.login.post');
+
+// Admin Password Reset Routes
+Route::get('admin/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('admin.password.request');
+Route::post('admin/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('admin.password.email');
+Route::get('admin/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('admin.password.reset');
+Route::post('admin/reset-password', [AuthController::class, 'resetPassword'])->name('admin.password.update');
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     // Basic Dashboard
@@ -24,4 +32,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('products', ProductController::class);
     Route::resource('users', UserController::class);
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
+    Route::resource('coupons', CouponController::class);
+    Route::resource('banners', BannerController::class);
 });

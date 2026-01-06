@@ -48,5 +48,10 @@ class Product extends Model
     {
         return $this->belongsToMany(User::class, 'comparisons')->withTimestamps();
     }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
 

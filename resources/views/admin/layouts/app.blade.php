@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - Volta</title>
+    <link rel="icon" type="image/png" href="{{ asset('Logo.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
@@ -43,6 +44,14 @@
                 <a href="{{ route('admin.users.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-slate-800 text-blue-400' : '' }}">
                     <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     المستخدمين
+                </a>
+                <a href="{{ route('admin.coupons.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.coupons.*') ? 'bg-slate-800 text-blue-400' : '' }}">
+                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                    الكوبونات
+                </a>
+                <a href="{{ route('admin.banners.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.banners.*') ? 'bg-slate-800 text-blue-400' : '' }}">
+                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                    البانرات
                 </a>
             </nav>
             <div class="absolute bottom-0 w-64 p-4 text-right">
@@ -170,7 +179,6 @@
                 document.body.style.overflow = 'auto';
             }
         }
-
         function confirmAction(formId, message = 'هل أنت متأكد؟', title = 'تأكيد الإجراء', type = 'danger') {
             currentFormId = formId;
             document.getElementById('modal-message').innerText = message;
