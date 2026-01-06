@@ -9,6 +9,18 @@ use App\Http\Controllers\Api\CategoryController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// CATEGORIES
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/{category}', [CategoryController::class, 'show']);
+
+// PRODUCTS
+Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{product}', [ProductController::class, 'show']);
+
+// BANNERS
+Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index']);
+
 // PASSWORD RESET
 Route::middleware('throttle:password-reset')->group(function () {
     Route::post('/password/forgot', [App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword']);
@@ -21,21 +33,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 
-    Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/categories/{category}', [CategoryController::class, 'show']);
+    
 
-    Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index']);
-
+    // ADMIN
     Route::middleware('admin')->group(function () {
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
     });
 
-    // USERS
-    Route::get('/products/best-selling', [ProductController::class, 'bestSelling']);
-    Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/{product}', [ProductController::class, 'show']);
+
 
     // ADMIN
     Route::middleware('admin')->group(function () {
