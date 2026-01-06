@@ -56,14 +56,14 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0|max:100',
-            'stock' => 'required|integer|min:0',
+            'category_id' => 'sometimes|exists:categories,id',
+            'name' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            'price' => 'sometimes|numeric|min:0',
+            'discount' => 'sometimes|numeric|min:0|max:100',
+            'stock' => 'sometimes|integer|min:0',
             'image' => 'nullable|image|max:2048',
-            'status' => 'boolean',
+            'status' => 'sometimes|boolean',
         ]);
 
         $data = $request->all();
