@@ -38,6 +38,9 @@ class ProductController extends Controller
         $limit = $request->get('limit', 10);
 
         $products = $query
+            ->with(['bundleOffers' => function ($query) {
+                $query->where('is_active', true);
+            }])
             ->orderBy('price', $sort)
             ->paginate($limit);
 
@@ -82,7 +85,9 @@ class ProductController extends Controller
     // SHOW
     public function show(Request $request, $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with(['bundleOffers' => function ($query) {
+            $query->where('is_active', true);
+        }])->findOrFail($id);
         return $this->successResponse($product->load('category'), 'تم جلب بيانات المنتج بنجاح');
     }
 
@@ -120,9 +125,9 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        // if ($product->image) {
+        //     Storage::disk('public')->delete($product->image);
+        // }
 
         $product->delete();
 
@@ -134,7 +139,7 @@ class ProductController extends Controller
      */
     public function bestSelling(Request $request)
     {
-        $limit = $request->get('limit', 10);
+        $limit = $request->get('limit', 5);
 
         $products = Product::with('category')
             ->withCount(['orderItems as total_sold' => function ($query) {

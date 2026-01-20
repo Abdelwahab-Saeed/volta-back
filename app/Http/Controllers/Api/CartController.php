@@ -15,6 +15,13 @@ class CartController extends Controller
 {
     use ApiResponse;
 
+    protected $priceCalculator;
+
+    public function __construct(\App\Services\PriceCalculator $priceCalculator)
+    {
+        $this->priceCalculator = $priceCalculator;
+    }
+
     public function index()
     {
         $cart = Auth::user()->cart()->with('items.product')->first();
@@ -38,17 +45,25 @@ class CartController extends Controller
 
         $cartItem = $cart->items()->where('product_id', $request->product_id)->first();
 
+        $product = Product::find($request->product_id);
+        
         if ($cartItem) {
-            $cartItem->quantity += $request->quantity;
-            $product = Product::find($request->product_id);
-            $cartItem->price_snapshot = $product->final_price; 
+            $newQuantity = $cartItem->quantity + $request->quantity;
+            $cartItem->quantity = $newQuantity;
+            
+            // Recalculate price based on new total quantity
+            $calculation = $this->priceCalculator->calculate($product, $newQuantity);
+            $cartItem->price_snapshot = $calculation['final_unit_price']; 
+            
             $cartItem->save();
         } else {
-            $product = Product::find($request->product_id);
+            // Calculate initial price
+            $calculation = $this->priceCalculator->calculate($product, $request->quantity);
+            
             $cart->items()->create([
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
-                'price_snapshot' => $product->final_price,
+                'price_snapshot' => $calculation['final_unit_price'],
             ]);
         }
 
@@ -74,8 +89,11 @@ class CartController extends Controller
             return $this->errorResponse('المنتج غير موجود في السلة', 404);
         }
 
+        $product = $cartItem->product;
+        $calculation = $this->priceCalculator->calculate($product, $request->quantity);
+
         $cartItem->quantity = $request->quantity;
-        $cartItem->price_snapshot = $cartItem->product->final_price;
+        $cartItem->price_snapshot = $calculation['final_unit_price'];
         $cartItem->save();
 
         return $this->successResponse($cart->load('items.product'), 'تم تحديث كمية المنتج بنجاح');

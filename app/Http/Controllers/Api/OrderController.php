@@ -58,7 +58,10 @@ class OrderController extends Controller
         // Restore stock if cancelled
         if ($request->status === OrderStatus::CANCELLED->value && $oldStatus !== OrderStatus::CANCELLED->value) {
             foreach ($order->items as $item) {
-                $item->product->increment('stock', $item->quantity);
+                $product = \App\Models\Product::withTrashed()->find($item->product_id);
+                if ($product) {
+                    $product->increment('stock', $item->quantity);
+                }
             }
         }
 
@@ -91,8 +94,12 @@ class OrderController extends Controller
         $order->save();
 
         // Restore Stock
+        // Restore Stock
         foreach ($order->items as $item) {
-            $item->product->increment('stock', $item->quantity);
+            $product = \App\Models\Product::withTrashed()->find($item->product_id);
+            if ($product) {
+                $product->increment('stock', $item->quantity);
+            }
         }
 
         return $this->successResponse($order, 'تم إلغاء الطلب بنجاح');

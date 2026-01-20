@@ -19,6 +19,7 @@ class Order extends Model
         'city',
         'state',
         'shipping_way',
+        'address_line',
         'status',
         'payment_method',
         'notes',

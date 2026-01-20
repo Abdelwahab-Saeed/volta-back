@@ -53,5 +53,10 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function bundleOffers()
+    {
+        return $this->hasMany(ProductBundleOffer::class)->orderBy('quantity', 'asc');
+    }
 }
 

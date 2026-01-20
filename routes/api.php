@@ -8,7 +8,8 @@ use App\Http\Controllers\Api\CategoryController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+// CHECKOUT
+Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
 // CATEGORIES
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
@@ -49,6 +50,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
+
+        // BUNDLE OFFERS
+        Route::get('/products/{product}/bundle-offers', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'index']);
+        Route::post('/products/{product}/bundle-offers', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'store']);
+        Route::put('/bundle-offers/{offer}', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'update']);
+        Route::delete('/bundle-offers/{offer}', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'destroy']);
     });
 
     // CART
@@ -66,9 +73,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/coupons/apply', [App\Http\Controllers\Api\CouponController::class, 'apply']);
     // Admin routes for coupons could be protected by admin middleware, but for now putting here or under 'admin' group if it existed
     Route::apiResource('coupons', App\Http\Controllers\Api\CouponController::class);
-
-    // CHECKOUT
-    Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
 
     // ORDERS
     Route::get('/orders', [App\Http\Controllers\Api\OrderController::class, 'index']);
