@@ -27,10 +27,10 @@ class CartController extends Controller
         $cart = Auth::user()->cart()->with('items.product')->first();
 
         if (!$cart) {
-            return $this->successResponse(['items' => []], 'السلة فارغة حالياً');
+            return $this->successResponse(['items' => []], __('api.cart_empty'));
         }
 
-        return $this->successResponse($cart, 'تم جلب بيانات السلة بنجاح');
+        return $this->successResponse($cart, __('api.cart_fetched'));
     }
 
     public function store(Request $request)
@@ -67,7 +67,7 @@ class CartController extends Controller
             ]);
         }
 
-        return $this->successResponse($cart->load('items.product'), 'تم إضافة المنتج إلى السلة بنجاح');
+        return $this->successResponse($cart->load('items.product'), __('api.cart_item_added'));
     }
 
     public function update(Request $request, $cartItemId)
@@ -80,13 +80,13 @@ class CartController extends Controller
         $cart = $user->cart;
 
         if (!$cart) {
-            return $this->errorResponse('لم يتم العثور على السلة', 404);
+            return $this->errorResponse(__('api.cart_not_found'), 404);
         }
 
         $cartItem = $cart->items()->where('id', $cartItemId)->first();
 
         if (!$cartItem) {
-            return $this->errorResponse('المنتج غير موجود في السلة', 404);
+            return $this->errorResponse(__('api.cart_item_not_found'), 404);
         }
 
         $product = $cartItem->product;
@@ -96,7 +96,7 @@ class CartController extends Controller
         $cartItem->price_snapshot = $calculation['final_unit_price'];
         $cartItem->save();
 
-        return $this->successResponse($cart->load('items.product'), 'تم تحديث كمية المنتج بنجاح');
+        return $this->successResponse($cart->load('items.product'), __('api.cart_item_updated'));
     }
 
     public function destroy($cartItemId)
@@ -105,18 +105,18 @@ class CartController extends Controller
         $cart = $user->cart;
 
         if (!$cart) {
-            return $this->errorResponse('لم يتم العثور على السلة', 404);
+            return $this->errorResponse(__('api.cart_not_found'), 404);
         }
 
         $cartItem = $cart->items()->where('id', $cartItemId)->first();
 
         if (!$cartItem) {
-            return $this->errorResponse('المنتج غير موجود في السلة', 404);
+            return $this->errorResponse(__('api.cart_item_not_found'), 404);
         }
 
         $cartItem->delete();
 
-        return $this->successResponse($cart->load('items.product'), 'تم إزالة المنتج من السلة بنجاح');
+        return $this->successResponse($cart->load('items.product'), __('api.cart_item_removed'));
     }
 
     public function clear()
@@ -128,6 +128,6 @@ class CartController extends Controller
             $cart->items()->delete();
         }
 
-        return $this->successResponse(null, 'تم تفريغ السلة بنجاح');
+        return $this->successResponse(null, __('api.cart_cleared'));
     }
 }

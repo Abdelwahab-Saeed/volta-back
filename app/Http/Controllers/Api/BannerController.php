@@ -15,7 +15,7 @@ class BannerController extends Controller
      */
     public function index()
     {
-        $banners = Banner::where('status', true)->latest()->get();
-        return $this->successResponse($banners, 'تم جلب البانرات بنجاح');
+        $banners = \App\Models\Banner::where('status', true)->latest()->get();
+        return $this->successResponse(\App\Http\Resources\BannerResource::collection($banners), __('api.banners_fetched'));
     }
 }

@@ -23,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectTo(guests: '/admin/login');
+        
+        $middleware->append(\App\Http\Middleware\SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, \Illuminate\Http\Request $request) {

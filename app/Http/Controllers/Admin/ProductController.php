@@ -35,7 +35,7 @@ class ProductController extends Controller
             'status' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {
@@ -66,7 +66,7 @@ class ProductController extends Controller
             'status' => 'sometimes|boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {

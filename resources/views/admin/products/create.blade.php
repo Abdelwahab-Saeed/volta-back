@@ -11,6 +11,7 @@
             <!-- Basic Info -->
             <div class="space-y-6">
                 <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">المعلومات الأساسية</h3>
+                
                 <div>
                     <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم المنتج</label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="مثلاً: آيفون 15 برو"

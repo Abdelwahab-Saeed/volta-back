@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 class Product extends Model
 {
     use HasFactory, SoftDeletes;
@@ -27,7 +26,8 @@ class Product extends Model
         'status' => 'boolean',
     ];
     
-    protected $appends = ['final_price'];
+    protected $appends = ['final_price']; // Append translated values if we override getAttribute, but for API we might rely on Resource
+
 
     // 🔗 Relationships
     public function category()

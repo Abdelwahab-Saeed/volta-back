@@ -1,20 +1,20 @@
 @extends('admin.layouts.app')
 
-@section('title', 'تعديل المنتج')
+@section('title', 'تعديل المنتج: ' . $product->name)
 
 @section('content')
 <div class="max-w-4xl bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-right">
-    <div class="flex items-center space-x-reverse space-x-6 mb-8 pb-8 border-b border-gray-100">
+    <div class="flex items-center space-x-reverse space-x-4 mb-8">
         @if($product->image)
-            <img src="{{ asset('storage/' . $product->image) }}" class="w-24 h-24 rounded-2xl object-cover border border-gray-200 shadow-sm">
+            <img src="{{ asset('storage/' . $product->image) }}" class="w-20 h-20 rounded-xl object-cover border border-gray-200">
         @endif
         <div>
-            <h3 class="text-2xl font-bold text-gray-800">تعديل "{{ $product->name }}"</h3>
-            <p class="text-gray-400 font-medium">آخر تحديث: {{ $product->updated_at->diffForHumans() }}</p>
+            <h3 class="text-xl font-bold font-gray-800">تعديل "{{ $product->name }}"</h3>
+            <p class="text-gray-400 text-sm font-medium">تحديث تفاصيل المنتج، الأسعار، والمخزون.</p>
         </div>
     </div>
 
-    <form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         
@@ -22,6 +22,7 @@
             <!-- Basic Info -->
             <div class="space-y-6">
                 <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">المعلومات الأساسية</h3>
+                
                 <div>
                     <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم المنتج</label>
                     <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}"
@@ -72,23 +73,22 @@
                     <label for="image" class="block text-sm font-bold text-gray-700 mb-2">تغيير الصورة</label>
                     <input type="file" name="image" id="image" accept="image/*"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-400 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <p class="mt-2 text-xs text-gray-400 italic">اتركه فارغاً للاحتفاظ بالصورة الحالية.</p>
                 </div>
 
                 <!-- Status -->
                 <div class="flex items-center">
                     <input type="checkbox" name="status" id="status" value="1" {{ $product->status ? 'checked' : '' }}
                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                    <label for="status" class="mr-2 text-sm font-bold text-gray-700">متاح للبيع</label>
+                    <label for="status" class="mr-2 text-sm font-bold text-gray-700">متاح للبيع الفوري</label>
                 </div>
             </div>
         </div>
 
         <div class="mt-12 flex space-x-reverse space-x-4 border-t border-gray-100 pt-8">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-lg font-bold transition-all shadow-md">
-                تحديث المنتج
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-md">
+                حفظ التعديلات
             </button>
-            <a href="{{ route('admin.products.index') }}" class="px-10 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-all font-bold">
+            <a href="{{ route('admin.products.index') }}" class="px-8 py-3 text-gray-500 hover:bg-gray-100 rounded-lg transition-all font-bold">
                 إلغاء
             </a>
         </div>

@@ -16,13 +16,17 @@
             <div class="divide-y divide-gray-100">
                 @foreach($order->items as $item)
                 <div class="p-6 flex items-center">
-                    <img src="{{ asset('storage/' . $item->product->image) }}" class="w-16 h-16 rounded-lg object-cover bg-gray-50 ml-6">
+                    @if($item->product)
+                        <img src="{{ asset('storage/' . $item->product->image) }}" class="w-16 h-16 rounded-lg object-cover bg-gray-50 ml-6">
+                    @else
+                        <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center ml-6 text-gray-400 text-xs">لا يوجد صورة</div>
+                    @endif
                     <div class="flex-1">
-                        <h4 class="font-bold text-gray-900">{{ $item->product->name }}</h4>
+                        <h4 class="font-bold text-gray-900">{{ $item->product->name ?? 'منتج محذوف' }}</h4>
                         <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ number_format($item->price, 2) }} ج.م</p>
                     </div>
                     <div class="text-left">
-                        <p class="font-bold text-gray-900">{{ number_format($item->total_price, 2) }} ج.م</p>
+                        <p class="font-bold text-gray-900">{{ number_format($item->price, 2) }} ج.م</p>
                     </div>
                 </div>
                 @endforeach
@@ -73,7 +77,10 @@
                 <p class="text-sm text-gray-600 leading-relaxed">
                     {{ $order->city }}، {{ $order->state }}<br>
                     طريقة الشحن: {{ $order->shipping_way }}<br>
-                    هاتف بديل: {{ $order->backup_phone_number ?? 'غير متوفر' }}
+                    رقم الهاتف: {{ $order->phone_number ?? 'غير متوفر' }}
+                </p>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                    عنوان الشحن:{{ $order->address_line }}
                 </p>
             </div>
         </div>

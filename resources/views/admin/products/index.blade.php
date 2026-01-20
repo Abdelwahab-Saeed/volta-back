@@ -29,20 +29,20 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse($products as $product)
                 <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="px-6 py-4">
+                    <td class="px-6 py-4 text-right">
                         <div class="flex items-center">
-                            <div class="flex-shrink-0 h-12 w-12 ml-4">
+                            <div class="flex-shrink-0 h-10 w-10">
                                 @if($product->image)
-                                    <img class="h-12 w-12 rounded-xl object-cover bg-gray-100 shadow-sm" src="{{ asset('storage/' . $product->image) }}" alt="">
+                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('storage/' . $product->image) }}" alt="">
                                 @else
-                                    <div class="h-12 w-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-300 border border-dashed border-gray-200">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                     </div>
                                 @endif
                             </div>
-                            <div class="max-w-[200px] sm:max-w-xs">
-                                <div class="text-sm font-black text-gray-900 truncate">{{ $product->name }}</div>
-                                <div class="text-xs text-gray-400 truncate">{{ Str::limit($product->description, 40) }}</div>
+                            <div class="mr-4">
+                                <div class="text-sm font-bold text-gray-900">{{ $product->name }}</div>
+                                <div class="text-xs text-gray-500">{{ $product->category ? $product->category->name : 'بدون قسم' }}</div>
                             </div>
                         </div>
                     </td>

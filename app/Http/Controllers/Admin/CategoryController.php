@@ -29,7 +29,7 @@ class CategoryController extends Controller
             'status' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {
@@ -55,7 +55,7 @@ class CategoryController extends Controller
             'status' => 'boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {

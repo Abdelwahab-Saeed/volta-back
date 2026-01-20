@@ -16,7 +16,8 @@ class CategoryController extends Controller
     // GET ALL
     public function index()
     {
-        return $this->successResponse(Category::latest()->get(), 'تم جلب الأقسام بنجاح');
+        $categories = Category::latest()->get();
+        return $this->successResponse(\App\Http\Resources\CategoryResource::collection($categories), __('api.categories_fetched'));
     }
 
     // CREATE
@@ -41,7 +42,7 @@ class CategoryController extends Controller
     // SHOW
     public function show(Category $category)
     {
-        return $this->successResponse($category, 'تم جلب بيانات القسم بنجاح');
+        return $this->successResponse(new \App\Http\Resources\CategoryResource($category), __('api.category_fetched'));
     }
 
     // UPDATE
