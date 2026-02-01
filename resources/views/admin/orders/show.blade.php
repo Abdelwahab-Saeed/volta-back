@@ -54,15 +54,15 @@
             <div class="space-y-4">
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">الاسم</p>
-                    <p class="font-semibold text-gray-800">{{ $order->user->name }}</p>
+                    <p class="font-semibold text-gray-800">{{ $order->user?->name ?? $order->full_name }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">البريد الإلكتروني</p>
-                    <p class="font-semibold text-gray-800">{{ $order->user->email }}</p>
+                    <p class="font-semibold text-gray-800">{{ $order->user?->email ?? 'غير متوفر' }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">رقم الهاتف</p>
-                    <p class="font-semibold text-gray-800">{{ $order->phone_number }}</p>
+                    <p class="font-semibold text-gray-800">{{ $order->phone_number ?? 'غير متوفر' }}</p>
                 </div>
             </div>
         </div>
@@ -90,7 +90,10 @@
             <form action="{{ route('admin.orders.update', $order) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <select name="status" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 mb-4 focus:ring-2 focus:ring-blue-500 transition-all outline-none">
+                <select name="status" class="w-full px-4 py-3 rounded-xl border-none font-black text-sm mb-4 focus:ring-0 transition-all outline-none cursor-pointer
+                    {{ $order->status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
+                       ($order->status === 'cancelled' ? 'bg-rose-100 text-rose-700' : 
+                       ($order->status === 'shipped' ? 'bg-sky-100 text-sky-700' : 'bg-orange-100 text-orange-700')) }}">
                     @foreach(App\Enums\OrderStatus::cases() as $status)
                         <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
                             @switch($status->value)

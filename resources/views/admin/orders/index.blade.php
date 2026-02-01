@@ -32,8 +32,8 @@
                         </span>
                     </td>
                     <td class="px-6 py-4">
-                        <div class="text-sm font-black text-gray-900">{{ $order->user->name }}</div>
-                        <div class="text-[10px] text-gray-400 font-medium">{{ $order->user->email }}</div>
+                        <div class="text-sm font-black text-gray-900">{{ $order->user?->name ?? $order->full_name }}</div>
+                        <div class="text-[10px] text-gray-400 font-medium">{{ $order->user?->email ?? 'غير متوفر' }}</div>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm font-black text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">
@@ -45,10 +45,10 @@
                             @csrf
                             @method('PUT')
                             <select name="status" onchange="this.form.submit()" 
-                                class="text-[11px] font-black px-4 py-1.5 rounded-full border-none outline-none cursor-pointer shadow-sm transition-all appearance-none pr-8 pl-4
+                                class="text-xs font-black px-5 py-2 rounded-full border-none outline-none cursor-pointer shadow-sm transition-all appearance-none pr-10 pl-5
                                 {{ $order->status === 'delivered' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 
-                                   ($order->status === 'cancelled' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 
-                                   ($order->status === 'shipped' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200')) }}">
+                                   ($order->status === 'cancelled' ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 
+                                   ($order->status === 'shipped' ? 'bg-sky-100 text-sky-700 hover:bg-sky-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200')) }}">
                                 @foreach(App\Enums\OrderStatus::cases() as $status)
                                     <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
                                         @switch($status->value)

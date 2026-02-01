@@ -79,11 +79,12 @@
                     <td class="px-6 py-4 font-bold text-gray-900 {{ $order->status === 'cancelled' ? 'text-gray-400 line-through' : '' }}">
                         #{{ $order->id }}
                     </td>
-                    <td class="px-6 py-4">{{ $order->user->name }}</td>
+                    <td class="px-6 py-4">{{ $order->user?->name ?? $order->full_name }}</td>
                     <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold
-                            {{ $order->status === 'delivered' ? 'bg-green-100 text-green-700' : 
-                               ($order->status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700') }}">
+                        <span class="px-4 py-1.5 rounded-full text-xs font-black
+                            {{ $order->status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
+                               ($order->status === 'cancelled' ? 'bg-rose-100 text-rose-700' : 
+                               ($order->status === 'shipped' ? 'bg-sky-100 text-sky-700' : 'bg-orange-100 text-orange-700')) }}">
                             @switch($order->status)
                                 @case('delivered') تم التوصيل @break
                                 @case('cancelled') ملغي @break
