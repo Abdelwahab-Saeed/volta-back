@@ -94,7 +94,7 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 font-bold text-gray-800">{{ number_format($order->total_amount, 2) }} ج.م</td>
-                    <td class="px-6 py-4 text-gray-400 text-sm text-left">{{ $order->created_at->format('Y/m/d') }}</td>
+                    <td class="px-6 py-4 text-gray-400 text-sm text-left">{{ $order->created_at?->format('Y/m/d') ?? 'غير متوفر' }}</td>
                 </tr>
                 @empty
                 <tr>

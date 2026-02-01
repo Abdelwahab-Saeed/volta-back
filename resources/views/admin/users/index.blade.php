@@ -61,7 +61,7 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm text-gray-400 font-bold">
-                            {{ $user->created_at->format('Y/m/d') ?? '' }}
+                            {{ $user->created_at?->format('Y/m/d') ?? 'غير متوفر' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-left">

@@ -14,7 +14,7 @@
         @endif
         <div>
             <h3 class="text-2xl font-bold text-gray-800">تعديل "{{ $user->name }}"</h3>
-            <p class="text-gray-400 font-medium">عضو منذ {{ $user->created_at->format('Y/m') }}</p>
+            <p class="text-gray-400 font-medium">عضو منذ {{ $user->created_at?->format('Y/m') ?? 'غير متوفر' }}</p>
         </div>
     </div>
 
