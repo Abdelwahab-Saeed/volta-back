@@ -21,7 +21,7 @@ class PostController extends Controller
         $posts = Post::latest()->paginate($limit);
 
         return $this->successResponse([
-            'items' => $posts->items(),
+            'posts' => $posts->items(),
             'pagination' => [
                 'current_page' => $posts->currentPage(),
                 'per_page'     => $posts->perPage(),
