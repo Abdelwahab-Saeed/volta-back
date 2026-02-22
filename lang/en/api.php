@@ -16,4 +16,9 @@ return [
     'cart_item_updated' => 'Product quantity updated successfully',
     'cart_item_removed' => 'Product removed from cart successfully',
     'cart_cleared' => 'Cart cleared successfully',
+    'posts_fetched' => 'Posts fetched successfully',
+    'post_fetched' => 'Post data fetched successfully',
+    'post_created' => 'Post created successfully',
+    'post_updated' => 'Post updated successfully',
+    'post_deleted' => 'Post deleted successfully',
 ];

@@ -22,6 +22,10 @@ Route::get('/products/{product}', [ProductController::class, 'show']);
 // BANNERS
 Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index']);
 
+// POSTS (BLOG)
+Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
+Route::get('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'show']);
+
 // PASSWORD RESET
 Route::middleware('throttle:password-reset')->group(function () {
     Route::post('/password/forgot', [App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword']);
@@ -41,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{category}', [CategoryController::class, 'update']);
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy']);
+
+        // POSTS (ADMIN)
+        Route::post('/posts', [App\Http\Controllers\Api\PostController::class, 'store']);
+        Route::put('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'update']);
+        Route::delete('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'destroy']);
     });
 
 

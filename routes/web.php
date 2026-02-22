@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\PostController as AdminPostController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,6 +35,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
     Route::resource('coupons', CouponController::class);
     Route::resource('banners', BannerController::class);
+    Route::resource('posts', AdminPostController::class);
     
     // Bundle Offers
     Route::get('products/{product}/offers', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'index'])->name('products.offers.index');
