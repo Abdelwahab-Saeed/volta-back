@@ -15,6 +15,13 @@ class AuthController extends Controller
 {
     use ApiResponse;
 
+    protected $metaService;
+
+    public function __construct(\App\Services\MetaService $metaService)
+    {
+        $this->metaService = $metaService;
+    }
+
     // REGISTER
     public function register(Request $request)
     {
@@ -33,6 +40,8 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        $this->metaService->sendRegistration($user);
 
         return $this->successResponse([
             'user' => $user,

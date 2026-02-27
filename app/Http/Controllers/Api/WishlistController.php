@@ -12,6 +12,13 @@ class WishlistController extends Controller
 {
     use ApiResponse;
 
+    protected $metaService;
+
+    public function __construct(\App\Services\MetaService $metaService)
+    {
+        $this->metaService = $metaService;
+    }
+
     /**
      * Get all products in the user's wishlist.
      */
@@ -33,6 +40,11 @@ class WishlistController extends Controller
 
         $user = Auth::user();
         $user->wishlist()->toggle($request->product_id);
+
+        $product = \App\Models\Product::find($request->product_id);
+        if ($user->wishlist()->where('product_id', $request->product_id)->exists()) {
+            $this->metaService->sendAddToWishlist($product, $user);
+        }
 
         return $this->successResponse(null, 'تم تحديث قائمة المفضلة بنجاح');
     }

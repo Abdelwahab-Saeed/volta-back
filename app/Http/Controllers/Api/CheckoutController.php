@@ -24,10 +24,12 @@ class CheckoutController extends Controller
      * Handle the incoming checkout request.
      */
     protected $priceCalculator;
+    protected $metaService;
 
-    public function __construct(\App\Services\PriceCalculator $priceCalculator)
+    public function __construct(\App\Services\PriceCalculator $priceCalculator, \App\Services\MetaService $metaService)
     {
         $this->priceCalculator = $priceCalculator;
+        $this->metaService = $metaService;
     }
 
     /**
@@ -196,6 +198,8 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
+
+            $this->metaService->sendPurchase($order);
 
             return $this->successResponse($order->load('items.product'), 'تم إتمام الطلب بنجاح', 201);
 

@@ -16,10 +16,12 @@ class CartController extends Controller
     use ApiResponse;
 
     protected $priceCalculator;
+    protected $metaService;
 
-    public function __construct(\App\Services\PriceCalculator $priceCalculator)
+    public function __construct(\App\Services\PriceCalculator $priceCalculator, \App\Services\MetaService $metaService)
     {
         $this->priceCalculator = $priceCalculator;
+        $this->metaService = $metaService;
     }
 
     public function index()
@@ -66,6 +68,8 @@ class CartController extends Controller
                 'price_snapshot' => $calculation['final_unit_price'],
             ]);
         }
+
+        $this->metaService->sendAddToCart($product, $user);
 
         return $this->successResponse($cart->load('items.product'), __('api.cart_item_added'));
     }
