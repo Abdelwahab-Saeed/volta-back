@@ -120,6 +120,13 @@
                 @endif
 
                 @yield('content')
+                <div class="text-center mt-10">
+                    <p class="text-md">
+                        Developed and Maintained by <a href='https://falak-innovation.com/' target='blank' class="hover:underline hover:text-secondary transition-colors" >
+                        Falak Innovation
+                        </a> © All Rights Reserved - Volta
+                    </p>
+                </div>
             </div>
         </main>
     </div>
