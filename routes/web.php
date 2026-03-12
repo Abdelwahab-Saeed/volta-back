@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
+use App\Http\Controllers\Admin\ProductFeatureController;
+use App\Http\Controllers\Admin\ProductImageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,4 +45,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('products/{product}/offers/{offer}/edit', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'edit'])->name('products.offers.edit');
     Route::put('products/{product}/offers/{offer}', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'update'])->name('products.offers.update');
     Route::delete('products/{product}/offers/{offer}', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'destroy'])->name('products.offers.destroy');
+
+    // Product Features
+    Route::get('products/{product}/features', [ProductFeatureController::class, 'index'])->name('products.features.index');
+    Route::post('products/{product}/features', [ProductFeatureController::class, 'store'])->name('products.features.store');
+    Route::put('features/{feature}', [ProductFeatureController::class, 'update'])->name('features.update');
+    Route::delete('features/{feature}', [ProductFeatureController::class, 'destroy'])->name('features.destroy');
+
+    // Product Images
+    Route::get('products/{product}/images', [ProductImageController::class, 'index'])->name('products.images.index');
+    Route::post('products/{product}/images', [ProductImageController::class, 'store'])->name('products.images.store');
+    Route::delete('images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
 });

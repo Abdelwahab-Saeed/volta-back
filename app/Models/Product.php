@@ -67,5 +67,15 @@ class Product extends Model
     {
         return $this->hasMany(ProductBundleOffer::class)->orderBy('quantity', 'asc');
     }
+
+    public function features()
+    {
+        return $this->hasMany(ProductFeature::class);
+    }
+
+    public function extraImages()
+    {
+        return $this->hasMany(ProductImage::class);
+    }
 }
 
