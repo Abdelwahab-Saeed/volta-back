@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\ProductFeatureController;
 use App\Http\Controllers\Admin\ProductImageController;
+use App\Http\Controllers\Admin\ReportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -56,4 +57,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('products/{product}/images', [ProductImageController::class, 'index'])->name('products.images.index');
     Route::post('products/{product}/images', [ProductImageController::class, 'store'])->name('products.images.store');
     Route::delete('images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
+
+    // Reports
+    Route::get('reports/sold-products', [ReportController::class, 'soldProducts'])->name('reports.sold_products');
 });

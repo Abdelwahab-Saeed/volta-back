@@ -57,6 +57,10 @@
                     <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
                     المقالات
                 </a>
+                <a href="{{ route('admin.reports.sold_products') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.reports.sold_products') ? 'bg-slate-800 text-blue-400' : '' }}">
+                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                    المنتجات المباعة
+                </a>
             </nav>
             <div class="absolute bottom-0 w-64 p-4 text-right">
                 <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" class="hidden">

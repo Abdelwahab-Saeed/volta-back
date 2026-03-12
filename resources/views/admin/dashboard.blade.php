@@ -3,7 +3,7 @@
 @section('title', 'لوحة التحكم')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
     <!-- Stat Card -->
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <div class="flex items-center">
@@ -52,6 +52,19 @@
             <div>
                 <p class="text-sm text-gray-500 font-medium">إجمالي الإيرادات</p>
                 <p class="text-2xl font-bold"> {{ number_format($stats['total_revenue'], 2) }} ج.م</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat Card -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center">
+            <div class="p-3 bg-rose-50 rounded-lg text-rose-600 ml-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 font-medium">إجمالي المصروفات</p>
+                <p class="text-2xl font-bold text-rose-600"> {{ number_format($stats['total_expenses'], 2) }} ج.م</p>
             </div>
         </div>
     </div>
