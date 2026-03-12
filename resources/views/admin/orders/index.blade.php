@@ -45,14 +45,12 @@
                             @csrf
                             @method('PUT')
                             <select name="status" onchange="this.form.submit()" 
-                                class="text-xs font-black px-5 py-2 rounded-full border-none outline-none cursor-pointer shadow-sm transition-all appearance-none pr-10 pl-5
-                                {{ $order->status === 'delivered' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 
-                                   ($order->status === 'cancelled' ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 
-                                   ($order->status === 'shipped' ? 'bg-sky-100 text-sky-700 hover:bg-sky-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200')) }}">
+                                class="text-xs font-black px-5 py-2 rounded-full border-none outline-none cursor-pointer shadow-sm transition-all appearance-none pr-10 pl-5">
                                 @foreach(App\Enums\OrderStatus::cases() as $status)
                                     <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
                                         @switch($status->value)
                                             @case('pending') قيد الانتظار @break
+                                            @case('processing') قيد التجهيز @break
                                             @case('shipped') تم الشحن @break
                                             @case('delivered') تم التوصيل @break
                                             @case('cancelled') ملغي @break

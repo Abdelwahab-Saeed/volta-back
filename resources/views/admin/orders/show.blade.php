@@ -33,8 +33,12 @@
             </div>
             <div class="p-6 bg-gray-50 border-t border-gray-100">
                 <div class="flex justify-between text-sm mb-2 text-gray-600">
-                    <span>الخصم المطبق</span>
-                    <span class="text-red-500">{{ number_format($order->discount_amount, 2) }}- ج.م</span>
+                    <span class="text-lg">الخصم المطبق</span>
+                    <span class="text-red-500 text-lg">{{ number_format($order->discount_amount, 2) }}- ج.م</span>
+                </div>
+                <div class="flex justify-between text-sm mb-2 text-gray-600">
+                    <span class="text-lg">تكلفة الشحن</span>
+                    <span class="text-gray-600 text-lg">{{ number_format($order->shipping_cost, 2) }} ج.م</span>
                 </div>
                 <div class="flex justify-between text-lg font-black text-gray-900">
                     <span>الإجمالي النهائي</span>
@@ -90,14 +94,12 @@
             <form action="{{ route('admin.orders.update', $order) }}" method="POST">
                 @csrf
                 @method('PUT')
-                <select name="status" class="w-full px-4 py-3 rounded-xl border-none font-black text-sm mb-4 focus:ring-0 transition-all outline-none cursor-pointer
-                    {{ $order->status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
-                       ($order->status === 'cancelled' ? 'bg-rose-100 text-rose-700' : 
-                       ($order->status === 'shipped' ? 'bg-sky-100 text-sky-700' : 'bg-orange-100 text-orange-700')) }}">
+                <select name="status" class="w-full px-4 py-3 rounded-xl border-none font-black text-sm mb-4 focus:ring-0 transition-all outline-none cursor-pointer">
                     @foreach(App\Enums\OrderStatus::cases() as $status)
                         <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
                             @switch($status->value)
                                 @case('pending') قيد الانتظار @break
+                                @case('processing') قيد التجهيز @break
                                 @case('shipped') تم الشحن @break
                                 @case('delivered') تم التوصيل @break
                                 @case('cancelled') ملغي @break
