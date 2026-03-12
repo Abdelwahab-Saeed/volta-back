@@ -128,7 +128,15 @@ class CheckoutController extends Controller
             }
         }
 
-        $shippingCost = 30.00; // Fixed shipping cost for now as per design
+        $shippingCost = $processedItems->sum(function ($item) {
+            return ($item->product->shipping_cost ?? 0) * $item->quantity;
+        });
+
+        // If no shipping cost is defined on products, fallback to a default or zero
+        if ($shippingCost == 0) {
+            $shippingCost = 30.00; // Keep the default 30 if no product has shipping cost
+        }
+
         $totalAmount = max(0, $subtotal - $discountAmount) + $shippingCost;
 
         try {

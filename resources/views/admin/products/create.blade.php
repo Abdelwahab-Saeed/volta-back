@@ -41,13 +41,26 @@
                 <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">الأسعار والمخزون</h3>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="price" class="block text-sm font-bold text-gray-700 mb-2">السعر (ج.م)</label>
-                        <input type="number" name="price" id="price" value="{{ old('price') }}"
+                        <label for="price" class="block text-sm font-bold text-gray-700 mb-2">السعر قبل الخصم (ج.م)</label>
+                        <input type="number" step="0.01" name="price" id="price" value="{{ old('price') }}"
                             class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                     </div>
                     <div>
-                        <label for="discount" class="block text-sm font-bold text-gray-700 mb-2">الخصم (%)</label>
-                        <input type="number" name="discount" id="discount" value="{{ old('discount', 0) }}"
+                        <label for="discount_price" class="block text-sm font-bold text-gray-700 mb-2">السعر بعد الخصم (ج.م)</label>
+                        <input type="number" step="0.01" name="discount_price" id="discount_price" value="{{ old('discount_price') }}"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="cost_price" class="block text-sm font-bold text-gray-700 mb-2">سعر التكلفة (ج.م)</label>
+                        <input type="number" step="0.01" name="cost_price" id="cost_price" value="{{ old('cost_price') }}"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
+                    </div>
+                    <div>
+                        <label for="shipping_cost" class="block text-sm font-bold text-gray-700 mb-2">تكلفة الشحن (ج.م)</label>
+                        <input type="number" step="0.01" name="shipping_cost" id="shipping_cost" value="{{ old('shipping_cost', 0) }}"
                             class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
                     </div>
                 </div>

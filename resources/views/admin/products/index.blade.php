@@ -50,9 +50,9 @@
                         <span class="text-sm font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">{{ $product->category->name ?? 'غير محدد' }}</span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <div class="text-sm font-black text-slate-900">{{ number_format($product->price, 2) }} ج.م</div>
-                        @if($product->discount > 0)
-                            <div class="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full inline-block mt-1">خصم {{ (int)$product->discount }}%</div>
+                        <div class="text-sm font-black text-slate-900">{{ number_format($product->final_price, 2) }} ج.م</div>
+                        @if($product->discount_price > 0 || $product->discount > 0)
+                            <div class="text-[10px] text-gray-400 line-through">{{ number_format($product->price, 2) }} ج.م</div>
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">

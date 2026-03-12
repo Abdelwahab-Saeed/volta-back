@@ -15,6 +15,9 @@ class Product extends Model
         'description',
         'price',
         'discount',
+        'discount_price',
+        'cost_price',
+        'shipping_cost',
         'stock',
         'image',
         'status',
@@ -23,6 +26,9 @@ class Product extends Model
     protected $casts = [
         'price' => 'decimal:2',
         'discount' => 'decimal:2',
+        'discount_price' => 'decimal:2',
+        'cost_price' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
         'status' => 'boolean',
     ];
     
@@ -36,7 +42,10 @@ class Product extends Model
     }
 
     public function getFinalPriceAttribute() {
-        return $this->price - ($this->price * $this->discount / 100);
+        if ($this->discount_price > 0) {
+            return $this->discount_price;
+        }
+        return $this->price;
     }
 
     public function wishlistedBy()
