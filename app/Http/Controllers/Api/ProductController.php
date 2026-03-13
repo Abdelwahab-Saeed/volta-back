@@ -48,7 +48,7 @@ class ProductController extends Controller
         $limit = $request->get('limit', 10);
 
         $products = $query
-            ->with(['bundleOffers' => function ($query) {
+            ->with(['features', 'extraImages', 'bundleOffers' => function ($query) {
                 $query->where('is_active', true);
             }])
             ->orderBy('price', $sort)
@@ -75,7 +75,7 @@ class ProductController extends Controller
     // SHOW
     public function show(Product $product)
     {
-        $product->load(['category', 'bundleOffers' => function ($query) {
+        $product->load(['category', 'features', 'extraImages', 'bundleOffers' => function ($query) {
             $query->where('is_active', true);
         }]);
 
@@ -108,7 +108,7 @@ class ProductController extends Controller
     {
         $limit = $request->get('limit', 5);
 
-        $products = Product::with('category')
+        $products = Product::with(['category', 'features', 'extraImages'])
             ->withCount(['orderItems as total_sold' => function ($query) {
                 $query->select(\Illuminate\Support\Facades\DB::raw('sum(quantity)'));
             }])
