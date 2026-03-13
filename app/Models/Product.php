@@ -20,6 +20,7 @@ class Product extends Model
         'shipping_cost',
         'stock',
         'image',
+        'preview_url',
         'status',
     ];
 

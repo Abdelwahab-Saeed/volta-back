@@ -35,6 +35,7 @@ class ProductController extends Controller
             'shipping_cost' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
+            'preview_url' => 'nullable|url',
             'status' => 'boolean',
         ]);
 
@@ -56,6 +57,12 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
+    public function show(Product $product)
+    {
+        $product->load(['category', 'features', 'extraImages']);
+        return view('admin.products.show', compact('product'));
+    }
+
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -69,6 +76,7 @@ class ProductController extends Controller
             'shipping_cost' => 'sometimes|nullable|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
             'image' => 'nullable|image|max:2048',
+            'preview_url' => 'nullable|url',
             'status' => 'sometimes|boolean',
         ]);
 

@@ -88,6 +88,12 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-400 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
 
+                <div>
+                    <label for="preview_url" class="block text-sm font-bold text-gray-700 mb-2">رابط الفيديو (Preview URL)</label>
+                    <input type="url" name="preview_url" id="preview_url" value="{{ old('preview_url', $product->preview_url) }}" placeholder="https://example.com/video"
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-left" dir="ltr">
+                </div>
+
                 <!-- Status -->
                 <div class="flex items-center">
                     <input type="checkbox" name="status" id="status" value="1" {{ $product->status ? 'checked' : '' }}
