@@ -37,6 +37,13 @@
                 <label for="status" class="mr-2 text-sm font-bold text-gray-700">تفعيل القسم</label>
             </div>
 
+            <!-- Order -->
+            <div>
+                <label for="category_order" class="block text-sm font-bold text-gray-700 mb-2 text-right">الترتيب (اختياري)</label>
+                <input type="number" name="category_order" id="category_order" value="{{ old('category_order') }}" placeholder="مثال: 1"
+                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-right">
+            </div>
+
             <div class="pt-4 flex space-x-reverse space-x-4">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold transition-all shadow-md">
                     حفظ القسم

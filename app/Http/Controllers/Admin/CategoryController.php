@@ -11,7 +11,10 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::latest()->paginate(15);
+        $categories = Category::withCount('products')
+            ->orderByRaw('category_order IS NULL, category_order ASC')
+            ->latest()
+            ->paginate(15);
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -27,6 +30,7 @@ class CategoryController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'status' => 'boolean',
+            'category_order' => 'nullable|integer',
         ]);
 
         $data = $request->except(['image']);
@@ -53,6 +57,7 @@ class CategoryController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'status' => 'boolean',
+            'category_order' => 'nullable|integer',
         ]);
 
         $data = $request->except(['image']);
@@ -78,5 +83,18 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('success', 'تم حذف القسم بنجاح.');
+    }
+
+    public function updateOrder(Request $request, Category $category)
+    {
+        $request->validate([
+            'category_order' => 'nullable|integer',
+        ]);
+
+        $category->update([
+            'category_order' => $request->category_order,
+        ]);
+
+        return back()->with('success', 'تم تحديث الترتيب بنجاح.');
     }
 }

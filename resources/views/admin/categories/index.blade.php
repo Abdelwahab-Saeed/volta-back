@@ -20,6 +20,7 @@
                 <tr>
                     <th class="px-6 py-4">القسم</th>
                     <th class="px-6 py-4 text-center">الحالة</th>
+                    <th class="px-6 py-4 text-center">الترتيب</th>
                     <th class="px-6 py-4 text-center">المنتجات</th>
                     <th class="px-6 py-4 text-left">العمليات</th>
                 </tr>
@@ -49,6 +50,17 @@
                             <span class="w-1.5 h-1.5 rounded-full ml-2 {{ $category->status ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400' }}"></span>
                             {{ $category->status ? 'نشط' : 'غير نشط' }}
                         </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <form action="{{ route('admin.categories.update-order', $category) }}" method="POST" class="flex items-center justify-center space-x-reverse space-x-2">
+                            @csrf
+                            @method('PUT')
+                            <input type="number" name="category_order" value="{{ $category->category_order }}" 
+                                class="w-16 px-2 py-1 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none text-center">
+                            <button type="submit" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100" title="تحديث الترتيب">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </button>
+                        </form>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm font-bold text-gray-600 bg-gray-50 px-3 py-1 rounded-lg">

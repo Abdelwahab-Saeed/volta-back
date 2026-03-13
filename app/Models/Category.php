@@ -14,11 +14,18 @@ class Category extends Model
         'description',
         'image',
         'status',
+        'category_order',
     ];
 
     protected $casts = [
         'status' => 'boolean',
+        'category_order' => 'integer',
     ];
 
     protected $appends = [];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

@@ -16,7 +16,7 @@ class CategoryController extends Controller
     // GET ALL
     public function index()
     {
-        $categories = Category::latest()->get();
+        $categories = Category::orderByRaw('category_order IS NULL, category_order ASC')->latest()->get();
         return $this->successResponse(\App\Http\Resources\CategoryResource::collection($categories), __('api.categories_fetched'));
     }
 

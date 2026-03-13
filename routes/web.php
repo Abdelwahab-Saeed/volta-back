@@ -33,6 +33,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Resource CRUDs
     Route::resource('categories', CategoryController::class);
+    Route::put('categories/{category}/update-order', [CategoryController::class, 'updateOrder'])->name('categories.update-order');
     Route::resource('products', ProductController::class);
     Route::resource('users', UserController::class);
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
