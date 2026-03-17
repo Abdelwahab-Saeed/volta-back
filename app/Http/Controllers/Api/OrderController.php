@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\OrderResource;
 
 use App\Traits\ApiResponse;
 
@@ -25,7 +26,7 @@ class OrderController extends Controller
             ->latest()
             ->get();
 
-        return $this->successResponse($orders, 'تم جلب طلباتك بنجاح');
+        return $this->successResponse(OrderResource::collection($orders), 'تم جلب طلباتك بنجاح');
     }
 
     /**
@@ -38,7 +39,7 @@ class OrderController extends Controller
              return $this->errorResponse('غير مصرح لك بالوصول لهذا الطلب', 403);
         }
 
-        return $this->successResponse($order->load('items.product'), 'تم جلب بيانات الطلب بنجاح');
+        return $this->successResponse(new OrderResource($order->load('items.product')), 'تم جلب بيانات الطلب بنجاح');
     }
 
     /**
@@ -65,7 +66,7 @@ class OrderController extends Controller
             }
         }
 
-        return $this->successResponse($order, 'تم تحديث حالة الطلب بنجاح');
+        return $this->successResponse(new OrderResource($order), 'تم تحديث حالة الطلب بنجاح');
     }
 
     /**
@@ -74,7 +75,7 @@ class OrderController extends Controller
     public function all()
     {
         $orders = Order::with('items.product', 'user')->latest()->get();
-        return $this->successResponse($orders, 'تم جلب جميع الطلبات بنجاح');
+        return $this->successResponse(OrderResource::collection($orders), 'تم جلب جميع الطلبات بنجاح');
     }
 
     /**

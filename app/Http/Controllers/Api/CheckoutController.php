@@ -209,7 +209,7 @@ class CheckoutController extends Controller
 
             $this->metaService->sendPurchase($order);
 
-            return $this->successResponse($order->load('items.product'), 'تم إتمام الطلب بنجاح', 201);
+            return $this->successResponse(new \App\Http\Resources\OrderResource($order->load('items.product')), 'تم إتمام الطلب بنجاح', 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
