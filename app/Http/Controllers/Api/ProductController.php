@@ -79,7 +79,7 @@ class ProductController extends Controller
             $query->where('is_active', true);
         }]);
 
-        $this->metaService->sendViewContent($product);
+        // $this->metaService->sendViewContent($product);
 
         return $this->successResponse(new \App\Http\Resources\ProductResource($product), __('api.product_fetched'));
     }

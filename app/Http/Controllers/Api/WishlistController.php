@@ -43,7 +43,7 @@ class WishlistController extends Controller
 
         $product = \App\Models\Product::find($request->product_id);
         if ($user->wishlist()->where('product_id', $request->product_id)->exists()) {
-            $this->metaService->sendAddToWishlist($product, $user);
+            // $this->metaService->sendAddToWishlist($product, $user);
         }
 
         return $this->successResponse(null, 'تم تحديث قائمة المفضلة بنجاح');

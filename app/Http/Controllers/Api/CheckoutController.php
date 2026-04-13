@@ -207,7 +207,7 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            $this->metaService->sendPurchase($order);
+            // $this->metaService->sendPurchase($order);
 
             return $this->successResponse(new \App\Http\Resources\OrderResource($order->load('items.product')), 'تم إتمام الطلب بنجاح', 201);
 

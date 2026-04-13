@@ -69,7 +69,7 @@ class CartController extends Controller
             ]);
         }
 
-        $this->metaService->sendAddToCart($product, $user);
+        // $this->metaService->sendAddToCart($product, $user);
 
         return $this->successResponse($cart->load('items.product'), __('api.cart_item_added'));
     }

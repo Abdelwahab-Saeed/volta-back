@@ -41,7 +41,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $this->metaService->sendRegistration($user);
+        // $this->metaService->sendRegistration($user);
 
         return $this->successResponse([
             'user' => $user,
