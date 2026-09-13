@@ -207,6 +207,12 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            // Dispatch notification to admins
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            if ($admins->count() > 0) {
+                \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewOrderNotification($order));
+            }
+
             // $this->metaService->sendPurchase($order);
 
             return $this->successResponse(new \App\Http\Resources\OrderResource($order->load('items.product')), 'تم إتمام الطلب بنجاح', 201);
