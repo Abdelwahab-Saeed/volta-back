@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@volta.com',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('12345678'),
             'role' => 'admin',
             'phone_number' => '01000000000',
             'date_of_birth' => '1990-01-01',

@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\CategoryController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+// SETTINGS
+Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index']);
+
 // CHECKOUT
 Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
 // CATEGORIES
