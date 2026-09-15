@@ -22,7 +22,8 @@ class SettingController extends Controller
             'youtube' => 'nullable|url',
             'twitter' => 'nullable|url',
             'instagram' => 'nullable|url',
-            'location' => 'nullable|string',
+            'location_ar' => 'nullable|string|max:255',
+            'location_en' => 'nullable|string|max:255',
         ]);
 
         foreach ($data as $key => $value) {

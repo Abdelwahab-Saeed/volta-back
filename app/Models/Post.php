@@ -2,9 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    protected $fillable = ['title', 'description', 'image'];
+    use HasTranslations;
+
+    protected $fillable = ['title_ar', 'title_en', 'description_ar', 'description_en', 'image'];
+
+    protected array $translatable = ['title', 'description'];
 }

@@ -19,8 +19,10 @@ class ProductFactory extends Factory
     {
         return [
             'category_id' => Category::factory(),
-            'name' => $this->faker->words(3, true),
-            'description' => $this->faker->sentence(),
+            'name_ar' => $this->faker->words(3, true),
+            'name_en' => $this->faker->words(3, true),
+            'description_ar' => $this->faker->sentence(),
+            'description_en' => $this->faker->sentence(),
             'price' => $this->faker->randomFloat(2, 10, 1000),
             'discount' => $this->faker->randomFloat(2, 0, 50),
             'stock' => $this->faker->numberBetween(1, 100),

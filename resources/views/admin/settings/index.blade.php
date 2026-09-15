@@ -90,21 +90,24 @@
                 @enderror
             </div>
 
-            <!-- Location -->
-            <div class="md:col-span-2">
-                <label for="location" class="block text-sm font-bold text-gray-700 mb-2">العنوان (Location)</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </span>
-                    <input type="text" name="location" id="location" value="{{ old('location', $settings['location'] ?? '') }}" 
-                        class="w-full pr-10 pl-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-                        placeholder="مثال: القاهرة، مصر">
+            <!-- Location (Arabic / English) -->
+            @foreach (['ar' => ['rtl', 'مثال: القاهرة، مصر'], 'en' => ['ltr', 'e.g. Cairo, Egypt']] as $locale => [$dir, $placeholder])
+                @php($input = "location_{$locale}")
+                <div class="md:col-span-2">
+                    <label for="{{ $input }}" class="block text-sm font-bold text-gray-700 mb-2">{{ __("admin.{$input}") }}</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 {{ $dir === 'rtl' ? 'right-0 pr-3' : 'left-0 pl-3' }} flex items-center text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </span>
+                        <input type="text" name="{{ $input }}" id="{{ $input }}" value="{{ old($input, $settings[$input] ?? '') }}" dir="{{ $dir }}"
+                            class="w-full {{ $dir === 'rtl' ? 'pr-10 pl-4' : 'pl-10 pr-4 text-left' }} py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                            placeholder="{{ $placeholder }}">
+                    </div>
+                    @error($input)
+                        <p class="mt-1 text-sm text-red-500 font-medium">{{ $message }}</p>
+                    @enderror
                 </div>
-                @error('location')
-                    <p class="mt-1 text-sm text-red-500 font-medium">{{ $message }}</p>
-                @enderror
-            </div>
+            @endforeach
         </div>
 
         <div class="mt-8 flex justify-end">

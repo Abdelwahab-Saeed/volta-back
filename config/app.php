@@ -84,6 +84,10 @@ return [
 
     'fallback_locale' => 'ar',
 
+    // Languages catalog content is stored in ({field}_ar / {field}_en columns)
+    // and that API clients may request. The first entry is the default.
+    'supported_locales' => ['ar', 'en'],
+
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     /*

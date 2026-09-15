@@ -18,7 +18,8 @@ class SettingSeeder extends Seeder
             ['key' => 'youtube', 'value' => 'https://youtube.com/volta'],
             ['key' => 'twitter', 'value' => 'https://twitter.com/volta'],
             ['key' => 'instagram', 'value' => 'https://instagram.com/volta'],
-            ['key' => 'location', 'value' => 'Cairo, Egypt'],
+            ['key' => 'location_ar', 'value' => 'القاهرة، مصر'],
+            ['key' => 'location_en', 'value' => 'Cairo, Egypt'],
         ];
 
         foreach ($settings as $setting) {

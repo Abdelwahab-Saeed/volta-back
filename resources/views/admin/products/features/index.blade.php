@@ -27,11 +27,7 @@
                 <h4 class="text-lg font-bold text-gray-800 mb-6">إضافة ميزة جديدة</h4>
                 <form action="{{ route('admin.products.features.store', $product->id) }}" method="POST" class="space-y-4">
                     @csrf
-                    <div>
-                        <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم الميزة</label>
-                        <input type="text" name="name" id="name" required placeholder="مثلاً: يدعم الشحن السريع"
-                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-                    </div>
+                    @include('admin.partials.translatable-field', ['field' => 'name'])
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md">
                         إضافة الميزة
                     </button>
@@ -50,11 +46,15 @@
                 <div class="divide-y divide-gray-100">
                     @forelse($product->features as $feature)
                         <div class="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-                            <form action="{{ route('admin.features.update', $feature->id) }}" method="POST" class="flex-grow flex items-center ml-4">
+                            <form action="{{ route('admin.features.update', $feature->id) }}" method="POST" class="flex-grow flex flex-col md:flex-row md:items-center gap-2 ml-4">
                                 @csrf
                                 @method('PUT')
-                                <input type="text" name="name" value="{{ $feature->name }}" 
-                                    class="flex-grow bg-transparent border focus:ring-0 focus:outline-none text-gray-700 font-medium py-1">
+                                <input type="text" name="name_ar" value="{{ $feature->name_ar }}" dir="rtl" required
+                                    placeholder="{{ __('admin.name_ar') }}" aria-label="{{ __('admin.name_ar') }}"
+                                    class="flex-grow bg-transparent border px-2 focus:ring-0 focus:outline-none text-gray-700 font-medium py-1">
+                                <input type="text" name="name_en" value="{{ $feature->name_en }}" dir="ltr" required
+                                    placeholder="{{ __('admin.name_en') }}" aria-label="{{ __('admin.name_en') }}"
+                                    class="flex-grow bg-transparent border px-2 focus:ring-0 focus:outline-none text-gray-700 font-medium py-1 text-left">
                                 <button type="submit" class="text-blue-500 hover:text-blue-700 text-xs font-bold mr-2">حفظ</button>
                             </form>
                             

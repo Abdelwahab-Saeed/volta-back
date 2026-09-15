@@ -24,8 +24,10 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'status' => 'boolean',
         ]);
@@ -36,7 +38,7 @@ class CategoryController extends Controller
 
         $category = Category::create($data);
 
-        return $this->successResponse($category, 'تم إضافة القسم بنجاح', 201);
+        return $this->successResponse(new \App\Http\Resources\CategoryResource($category), 'تم إضافة القسم بنجاح', 201);
     }
 
     // SHOW
@@ -49,8 +51,10 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $data = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'sometimes|required|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'status' => 'nullable|boolean',
         ]);
@@ -64,7 +68,7 @@ class CategoryController extends Controller
 
         $category->update($data);
 
-        return $this->successResponse($category, 'تم تحديث بيانات القسم بنجاح');
+        return $this->successResponse(new \App\Http\Resources\CategoryResource($category), 'تم تحديث بيانات القسم بنجاح');
     }
 
     // DELETE

@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasTranslations, SoftDeletes;
 
     protected $fillable = [
         'category_id',
-        'name',
-        'description',
+        'name_ar',
+        'name_en',
+        'description_ar',
+        'description_en',
         'price',
         'discount',
         'discount_price',
@@ -24,6 +27,8 @@ class Product extends Model
         'status',
     ];
 
+    protected array $translatable = ['name', 'description'];
+
     protected $casts = [
         'price' => 'decimal:2',
         'discount' => 'decimal:2',
@@ -33,7 +38,7 @@ class Product extends Model
         'status' => 'boolean',
     ];
     
-    protected $appends = ['final_price']; // Append translated values if we override getAttribute, but for API we might rely on Resource
+    protected $appends = ['final_price'];
 
 
     // 🔗 Relationships

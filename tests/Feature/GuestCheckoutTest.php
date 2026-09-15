@@ -20,18 +20,18 @@ class GuestCheckoutTest extends TestCase
     {
         // Create a category and product
         $category = Category::create([
-            'name' => 'Electronics',
-            'slug' => 'electronics',
+            'name_ar' => 'Electronics',
+            'name_en' => 'Electronics',
         ]);
 
         $product = Product::create([
             'category_id' => $category->id,
-            'name' => 'Test Product',
-            'slug' => 'test-product',
-            'description' => 'Test Description',
+            'name_ar' => 'Test Product',
+            'name_en' => 'Test Product',
+            'description_ar' => 'Test Description',
+            'description_en' => 'Test Description',
             'price' => 100.00,
             'stock' => 10,
-            'is_active' => true,
         ]);
 
         $data = [

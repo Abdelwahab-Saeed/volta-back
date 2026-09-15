@@ -29,11 +29,8 @@ class ProductController extends Controller
         }
 
         if ($request->filled('search')) {
-            $term = $request->search;
-            $query->where(function($q) use ($term) {
-                 $q->where('name', 'LIKE', "%{$term}%")
-                   ->orWhere('description', 'LIKE', "%{$term}%");
-            });
+            // Searches both languages so Arabic and English terms both match.
+            $query->whereTranslationLike(['name', 'description'], $request->search);
         }
 
         if ($request->filled('min_price')) {

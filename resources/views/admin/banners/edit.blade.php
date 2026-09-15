@@ -10,18 +10,10 @@
         
         <div class="space-y-6">
             <!-- Title -->
-            <div>
-                <label for="title" class="block text-sm font-bold text-gray-700 mb-2">عنوان البانر</label>
-                <input type="text" name="title" id="title" value="{{ old('title', $banner->title) }}"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none font-bold">
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'title', 'model' => $banner])
 
             <!-- Description -->
-            <div>
-                <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
-                <textarea name="description" id="description" rows="3"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description', $banner->description) }}</textarea>
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'description', 'model' => $banner, 'textarea' => true, 'rows' => 3])
 
             <!-- Current Image -->
             @if($banner->image)

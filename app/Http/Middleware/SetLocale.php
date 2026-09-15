@@ -12,19 +12,31 @@ class SetLocale
     /**
      * Handle an incoming request.
      *
+     * API requests pick their language from `?lang=` or the Accept-Language
+     * header; the admin dashboard is Arabic-only and keeps the app default.
+     *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->header('Accept-Language', 'ar');
-
-        // Only allow ar and en
-        if (!in_array($locale, ['ar', 'en'])) {
-            $locale = 'ar';
+        if (! $request->is('api/*')) {
+            return $next($request);
         }
 
-        App::setLocale($locale);
+        $supported = config('app.supported_locales');
+        $lang = $request->query('lang');
 
-        return $next($request);
+        // getPreferredLanguage understands q-values and regional tags
+        // ("en-US,en;q=0.9", "ar-EG") and returns the first supported
+        // locale when the header is missing or matches nothing.
+        App::setLocale(in_array($lang, $supported, true) ? $lang : $request->getPreferredLanguage($supported));
+
+        $response = $next($request);
+
+        // The same URL returns different content per language, so caches
+        // (browser, CDN) must key on the header.
+        $response->headers->set('Vary', 'Accept-Language', false);
+
+        return $response;
     }
 }

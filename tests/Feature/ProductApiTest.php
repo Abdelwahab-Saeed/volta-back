@@ -16,16 +16,18 @@ class ProductApiTest extends TestCase
 
     public function test_product_api_returns_preview_url_and_relationships()
     {
-        $category = Category::factory()->create(['name' => 'Phones']);
+        $category = Category::factory()->create(['name_ar' => 'هواتف', 'name_en' => 'Phones']);
         $product = Product::factory()->create([
             'category_id' => $category->id,
-            'name' => 'iPhone 15',
+            'name_ar' => 'آيفون 15',
+            'name_en' => 'iPhone 15',
             'preview_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         ]);
 
         ProductFeature::create([
             'product_id' => $product->id,
-            'name' => 'A17 Bionic chip',
+            'name_ar' => 'معالج A17 Bionic',
+            'name_en' => 'A17 Bionic chip',
         ]);
 
         ProductImage::create([
@@ -33,7 +35,7 @@ class ProductApiTest extends TestCase
             'image' => 'uploads/products/extra1.jpg',
         ]);
 
-        $response = $this->getJson('/api/products/' . $product->id);
+        $response = $this->getJson('/api/products/' . $product->id, ['Accept-Language' => 'en']);
 
         $response->assertStatus(200)
             ->assertJsonPath('data.preview_url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')

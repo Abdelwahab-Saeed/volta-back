@@ -23,11 +23,7 @@
             <div class="space-y-6">
                 <h3 class="text-lg font-bold text-gray-800 border-b border-gray-50 pb-2">المعلومات الأساسية</h3>
                 
-                <div>
-                    <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم المنتج</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-                </div>
+                @include('admin.partials.translatable-field', ['field' => 'name', 'model' => $product])
 
                 <div>
                     <label for="category_id" class="block text-sm font-bold text-gray-700 mb-2">القسم</label>
@@ -40,11 +36,7 @@
                     </select>
                 </div>
 
-                <div>
-                    <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
-                    <textarea name="description" id="description" rows="5"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description', $product->description) }}</textarea>
-                </div>
+                @include('admin.partials.translatable-field', ['field' => 'description', 'model' => $product, 'textarea' => true, 'rows' => 5])
             </div>
 
             <!-- Pricing & Inventory -->

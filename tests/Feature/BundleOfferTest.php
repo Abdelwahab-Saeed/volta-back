@@ -18,13 +18,13 @@ class BundleOfferTest extends TestCase
      */
     public function test_exact_quantity_match_applies_bundle_price_guest()
     {
-        $category = Category::create(['name' => 'Cat', 'slug' => 'cat']);
+        $category = Category::create(['name_ar' => 'Cat', 'name_en' => 'Cat']);
         $product = Product::create([
             'category_id' => $category->id,
-            'name' => 'Bundle Product', 
-            'price' => 100, 
+            'name_ar' => 'Bundle Product',
+            'name_en' => 'Bundle Product',
+            'price' => 100,
             'stock' => 50,
-            'is_active' => true 
         ]);
 
         // Bundle: Buy exactly 3 for 250 (instead of 300)
@@ -67,13 +67,13 @@ class BundleOfferTest extends TestCase
      */
     public function test_non_matching_quantity_uses_standard_price()
     {
-        $category = Category::create(['name' => 'Cat', 'slug' => 'cat']);
+        $category = Category::create(['name_ar' => 'Cat', 'name_en' => 'Cat']);
         $product = Product::create([
             'category_id' => $category->id,
-            'name' => 'Bundle Product', 
-            'price' => 100, 
+            'name_ar' => 'Bundle Product',
+            'name_en' => 'Bundle Product',
+            'price' => 100,
             'stock' => 50,
-            'is_active' => true 
         ]);
 
         // Bundle: Buy exactly 3 for 250
@@ -109,13 +109,13 @@ class BundleOfferTest extends TestCase
      */
     public function test_higher_quantity_does_not_trigger_bundle()
     {
-        $category = Category::create(['name' => 'Cat', 'slug' => 'cat']);
+        $category = Category::create(['name_ar' => 'Cat', 'name_en' => 'Cat']);
         $product = Product::create([
             'category_id' => $category->id,
-            'name' => 'Bundle Product', 
-            'price' => 100, 
+            'name_ar' => 'Bundle Product',
+            'name_en' => 'Bundle Product',
+            'price' => 100,
             'stock' => 50,
-            'is_active' => true 
         ]);
 
         // Bundle: Buy exactly 3 for 250

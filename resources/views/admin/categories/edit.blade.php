@@ -11,18 +11,10 @@
         <div class="space-y-6">
             
             <!-- Name -->
-            <div>
-                <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم القسم</label>
-                <input type="text" name="name" id="name" value="{{ old('name', $category->name) }}"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'name', 'model' => $category])
 
             <!-- Description -->
-            <div>
-                <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
-                <textarea name="description" id="description" rows="4"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description', $category->description) }}</textarea>
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'description', 'model' => $category, 'textarea' => true])
 
             <!-- Image -->
             <div>

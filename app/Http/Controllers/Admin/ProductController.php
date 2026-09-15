@@ -26,8 +26,10 @@ class ProductController extends Controller
     {
         $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'description_ar' => 'required|string',
+            'description_en' => 'required|string',
             'price' => 'required|numeric|min:0',
             'discount' => 'nullable|numeric|min:0|max:100',
             'discount_price' => 'nullable|numeric|min:0',
@@ -67,8 +69,10 @@ class ProductController extends Controller
     {
         $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|nullable|string',
+            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'sometimes|required|string|max:255',
+            'description_ar' => 'sometimes|nullable|string',
+            'description_en' => 'sometimes|nullable|string',
             'price' => 'sometimes|numeric|min:0',
             'discount' => 'sometimes|nullable|numeric|min:0|max:100',
             'discount_price' => 'sometimes|nullable|numeric|min:0',

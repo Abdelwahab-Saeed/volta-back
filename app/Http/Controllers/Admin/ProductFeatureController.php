@@ -17,13 +17,14 @@ class ProductFeatureController extends Controller
 
     public function store(Request $request, $productId)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $data = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
         ]);
 
         ProductFeature::create([
             'product_id' => $productId,
-            'name' => $request->name,
+            ...$data,
         ]);
 
         return redirect()->back()->with('success', 'تم إضافة الميزة بنجاح.');
@@ -31,13 +32,12 @@ class ProductFeatureController extends Controller
 
     public function update(Request $request, ProductFeature $feature)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $data = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
         ]);
 
-        $feature->update([
-            'name' => $request->name,
-        ]);
+        $feature->update($data);
 
         return redirect()->back()->with('success', 'تم تحديث الميزة بنجاح.');
     }

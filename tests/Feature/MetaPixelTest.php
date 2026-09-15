@@ -22,7 +22,7 @@ class MetaPixelTest extends TestCase
 
         $product = new Product([
             'id' => 1,
-            'name' => 'Test Product',
+            'name_en' => 'Test Product',
             'price' => 100,
         ]);
 

@@ -10,18 +10,10 @@
         <div class="space-y-6">
             
             <!-- Name -->
-            <div>
-                <label for="name" class="block text-sm font-bold text-gray-700 mb-2">اسم القسم</label>
-                <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="مثلاً: هواتف ذكية"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'name'])
 
             <!-- Description -->
-            <div>
-                <label for="description" class="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
-                <textarea name="description" id="description" rows="4" placeholder="اكتب وصفاً مختصراً..."
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">{{ old('description') }}</textarea>
-            </div>
+            @include('admin.partials.translatable-field', ['field' => 'description', 'textarea' => true])
 
             <!-- Image -->
             <div>

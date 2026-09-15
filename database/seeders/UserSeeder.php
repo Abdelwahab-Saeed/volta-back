@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
             'name' => 'Regular User',
             'email' => 'user@volta.com',
             'password' => Hash::make('password'),
-            'role' => 'customer', // Assuming customer is the default role
+            'role' => 'user',
             'phone_number' => '01111111111',
             'date_of_birth' => '1995-01-01',
             'email_verified_at' => now(),
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
 
         // Random Users
         User::factory(10)->create([
-            'role' => 'customer',
+            'role' => 'user',
         ]);
     }
 }
