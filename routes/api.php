@@ -13,6 +13,10 @@ Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index']
 
 // CHECKOUT
 Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
+
+// TRACKING
+Route::post('/track/pageview', [App\Http\Controllers\Api\TrackingController::class, 'pageView']);
+
 // CATEGORIES
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
