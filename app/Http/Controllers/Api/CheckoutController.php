@@ -213,7 +213,7 @@ class CheckoutController extends Controller
                 \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewOrderNotification($order));
             }
 
-            // $this->metaService->sendPurchase($order);
+            $this->metaService->sendPurchase($order);
 
             return $this->successResponse(new \App\Http\Resources\OrderResource($order->load('items.product')), 'تم إتمام الطلب بنجاح', 201);
 

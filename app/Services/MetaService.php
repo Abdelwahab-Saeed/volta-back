@@ -155,4 +155,23 @@ class MetaService
             ]
         );
     }
+
+    public function sendPageView($url, $user = null)
+    {
+        Http::post(
+            "https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'),
+            [
+                "data" => [
+                    [
+                        "event_name" => "PageView",
+                        "event_time" => time(),
+                        "action_source" => "website",
+                        "event_source_url" => $url,
+                        "event_id" => 'pv_' . time(),
+                        "user_data" => $this->getUserData($user ?: auth()->user())
+                    ]
+                ]
+            ]
+        );
+    }
 }
