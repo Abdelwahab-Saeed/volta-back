@@ -114,8 +114,9 @@ class ProductSeeder extends Seeder
         }
     }
 
-    private function createProduct(Category $category, string $nameEn, string $nameAr, int $price): void
+    private function createProduct(Category $category, string $nameEn, string $nameAr, int $pounds): void
     {
+        $price = $pounds * 100; // piasters
         $discount = fake()->boolean(40) ? fake()->randomElement([10, 15, 20, 25]) : null;
 
         $product = Product::create([
@@ -126,9 +127,9 @@ class ProductSeeder extends Seeder
             'description_ar' => "{$nameAr}. {$category->description_ar} مع ضمان فولتا الرسمي.",
             'price' => $price,
             'discount' => $discount,
-            'discount_price' => $discount ? round($price * (100 - $discount) / 100) : null,
-            'cost_price' => round($price * fake()->randomFloat(2, 0.55, 0.7)),
-            'shipping_cost' => fake()->randomElement([0, 0, 25, 40, 50]),
+            'discount_price' => $discount ? (int) round($price * (100 - $discount) / 100, -2) : null, // whole pounds
+            'cost_price' => (int) round($price * fake()->randomFloat(2, 0.55, 0.7)),
+            'shipping_cost' => fake()->randomElement([0, 0, 2500, 4000, 5000]),
             'stock' => fake()->boolean(10) ? 0 : fake()->numberBetween(20, 150),
             'image' => PlaceholderImage::make('uploads/products', $nameEn),
             'status' => ! fake()->boolean(8),
@@ -145,11 +146,11 @@ class ProductSeeder extends Seeder
         }
 
         // Bundle price is the total for exactly that quantity (see PriceCalculator).
-        if ($price <= 700) {
+        if ($pounds <= 700) {
             foreach ([2 => 0.9, 3 => 0.85] as $quantity => $factor) {
                 $product->bundleOffers()->create([
                     'quantity' => $quantity,
-                    'bundle_price' => round($product->final_price * $quantity * $factor),
+                    'bundle_price' => (int) round($product->final_price * $quantity * $factor, -2), // whole pounds
                     'is_active' => true,
                 ]);
             }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\Money;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use Illuminate\Http\Request;
@@ -30,14 +31,14 @@ class CouponController extends Controller
         $validated = $request->validate([
             'code' => 'required|unique:coupons,code',
             'type' => 'required|in:fixed,percent',
-            'value' => 'required|numeric|min:0',
+            'value' => ['required', 'numeric', 'min:0', Rule::when($request->input('type') === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
             'max_uses' => 'nullable|integer|min:1',
         ]);
 
-        $coupon = Coupon::create($validated);
+        $coupon = Coupon::create(Coupon::fromInput($validated));
 
         return $this->successResponse($coupon, 'تم إضافة الكوبون بنجاح', 201);
     }
@@ -58,14 +59,14 @@ class CouponController extends Controller
         $validated = $request->validate([
             'code' => ['sometimes', 'string', Rule::unique('coupons')->ignore($coupon->id)],
             'type' => 'sometimes|in:fixed,percent',
-            'value' => 'sometimes|numeric|min:0',
+            'value' => ['sometimes', 'numeric', 'min:0', Rule::when($request->input('type', $coupon->type) === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
             'max_uses' => 'nullable|integer|min:1',
         ]);
 
-        $coupon->update($validated);
+        $coupon->update(Coupon::fromInput($validated, $coupon->type));
 
         return $this->successResponse($coupon, 'تم تحديث بيانات الكوبون بنجاح');
     }
@@ -109,13 +110,15 @@ class CouponController extends Controller
         }
 
         // 3. General validity (expiry, min amount)
-        if (!$coupon->isValid($request->cart_total)) {
+        $cartTotal = Money::fromPounds($request->cart_total);
+
+        if (!$coupon->isValid($cartTotal)) {
              return $this->errorResponse('الكوبون غير صالح لهذا الطلب (تحقق من الحد الأدنى أو تاريخ انتهاء الصلاحية)', 422);
         }
 
         return $this->successResponse([
             'coupon' => $coupon,
-            'discount_amount' => $coupon->calculateDiscount($request->cart_total),
+            'discount_amount' => Money::toPounds($coupon->calculateDiscount($cartTotal)),
         ], 'تم تطبيق الكوبون بنجاح');
     }
 }

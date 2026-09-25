@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Casts\MoneyCast;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 
@@ -30,11 +31,14 @@ class Order extends Model
         'coupon_code',
     ];
 
+    // Pre-piasters backup columns, removed by the drop_legacy_money_columns migration.
+    protected $hidden = ['subtotal_legacy', 'shipping_cost_legacy', 'discount_amount_legacy', 'total_amount_legacy'];
+
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'shipping_cost' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'subtotal' => MoneyCast::class,
+        'shipping_cost' => MoneyCast::class,
+        'discount_amount' => MoneyCast::class,
+        'total_amount' => MoneyCast::class,
     ];
 
     public function user()

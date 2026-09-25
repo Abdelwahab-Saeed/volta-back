@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\Money;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductBundleOffer;
@@ -45,7 +46,7 @@ class ProductBundleOfferController extends Controller
             return $this->errorResponse('يوجد عرض لهذا المنتج بنفس الكمية بالفعل', 422);
         }
 
-        $offer = $product->bundleOffers()->create($validated);
+        $offer = $product->bundleOffers()->create(Money::fromPoundsFields($validated, ['bundle_price']));
 
         return $this->successResponse($offer, 'تم إنشاء عرض الباقة بنجاح', 201);
     }
@@ -76,7 +77,7 @@ class ProductBundleOfferController extends Controller
              }
         }
 
-        $offer->update($validated);
+        $offer->update(Money::fromPoundsFields($validated, ['bundle_price']));
 
         return $this->successResponse($offer, 'تم تحديث عرض الباقة بنجاح');
     }

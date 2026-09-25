@@ -18,7 +18,7 @@ class CheckoutTest extends TestCase
     public function test_user_can_checkout_successfully()
     {
         $user = User::factory()->create();
-        $product = Product::factory()->create(['price' => 100]);
+        $product = Product::factory()->create(['price' => 10000]);
         $address = Address::factory()->create(['user_id' => $user->id]);
         
         // Setup Cart
@@ -41,8 +41,8 @@ class CheckoutTest extends TestCase
         // Total = (100 * 2) + 30 (shipping) = 230
         $this->assertDatabaseHas('orders', [
             'user_id' => $user->id,
-            'total_amount' => 230, 
-            'shipping_cost' => 30,
+            'total_amount' => 23000,
+            'shipping_cost' => 3000,
             'status' => 'pending',
             'payment_method' => 'cash',
             'notes' => 'Leave at door',
@@ -54,7 +54,7 @@ class CheckoutTest extends TestCase
     public function test_checkout_with_coupon()
     {
         $user = User::factory()->create();
-        $product = Product::factory()->create(['price' => 100]);
+        $product = Product::factory()->create(['price' => 10000]);
         $address = Address::factory()->create(['user_id' => $user->id]);
         $coupon = Coupon::create([
             'code' => 'SAVE10',
@@ -80,10 +80,10 @@ class CheckoutTest extends TestCase
         // Total: 90 + 30 = 120
         $this->assertDatabaseHas('orders', [
             'user_id' => $user->id,
-            'subtotal' => 100,
-            'discount_amount' => 10,
-            'shipping_cost' => 30,
-            'total_amount' => 120,
+            'subtotal' => 10000,
+            'discount_amount' => 1000,
+            'shipping_cost' => 3000,
+            'total_amount' => 12000,
             'coupon_code' => 'SAVE10',
             'payment_method' => 'card',
         ]);

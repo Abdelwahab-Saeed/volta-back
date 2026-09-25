@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\Money;
+use App\Casts\CouponValueCast;
+use App\Casts\MoneyCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
@@ -21,11 +24,14 @@ class Coupon extends Model
         'times_used',
     ];
 
+    // Pre-piasters backup columns, removed by the drop_legacy_money_columns migration.
+    protected $hidden = ['value_legacy', 'min_order_amount_legacy'];
+
     protected $casts = [
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
-        'value' => 'decimal:2',
-        'min_order_amount' => 'decimal:2',
+        'value' => CouponValueCast::class, // piasters for fixed, whole percent for percent
+        'min_order_amount' => MoneyCast::class,
     ];
 
     public function isValid($totalAmount)
@@ -49,12 +55,29 @@ class Coupon extends Model
         return true;
     }
     
-    public function calculateDiscount($totalAmount)
+    /**
+     * Convert form/API input (pounds) to stored units. "value" is money only for fixed coupons.
+     */
+    public static function fromInput(array $data, ?string $currentType = null): array
+    {
+        $type = $data['type'] ?? $currentType;
+
+        if ($type === 'fixed') {
+            $data = Money::fromPoundsFields($data, ['value']);
+        }
+
+        return Money::fromPoundsFields($data, ['min_order_amount']);
+    }
+
+    /**
+     * Discount in piasters for a total in piasters.
+     */
+    public function calculateDiscount(int $totalAmount): int
     {
         if ($this->type === 'fixed') {
             return min($this->value, $totalAmount);
         } elseif ($this->type === 'percent') {
-            return $totalAmount * ($this->value / 100);
+            return (int) round($totalAmount * $this->value / 100);
         }
         return 0;
     }

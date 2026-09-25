@@ -40,7 +40,7 @@ class TranslationApiTest extends TestCase
             'category_id' => $categoryId,
             'name' => 'Voltage Stabilizer',
             'description' => null,
-            'price' => 100,
+            'price' => 10000,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

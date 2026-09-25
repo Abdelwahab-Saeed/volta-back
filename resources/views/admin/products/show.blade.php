@@ -132,21 +132,21 @@
                 <div class="p-6 space-y-4">
                     <div class="flex items-center justify-between">
                         <span class="text-gray-400 text-sm font-bold">السعر النهائي</span>
-                        <div class="text-3xl font-black text-blue-600">{{ number_format($product->final_price, 2) }} <span class="text-sm">ج.م</span></div>
+                        <div class="text-3xl font-black text-blue-600">{{ \App\Support\Money::format($product->final_price) }} <span class="text-sm">ج.م</span></div>
                     </div>
                     
                     <div class="space-y-2 pt-4 border-t border-gray-50">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">السعر الأصلي</span>
-                            <span class="font-bold text-gray-800">{{ number_format($product->price, 2) }} ج.م</span>
+                            <span class="font-bold text-gray-800">{{ \App\Support\Money::format($product->price) }} ج.م</span>
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">سعر التكلفة</span>
-                            <span class="font-bold text-gray-800">{{ number_format($product->cost_price, 2) }} ج.م</span>
+                            <span class="font-bold text-gray-800">{{ \App\Support\Money::format($product->cost_price) }} ج.م</span>
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">الربح المتوقع</span>
-                            <span class="font-bold text-emerald-600">{{ number_format($product->final_price - $product->cost_price, 2) }} ج.م</span>
+                            <span class="font-bold text-emerald-600">{{ \App\Support\Money::format($product->final_price - $product->cost_price) }} ج.م</span>
                         </div>
                     </div>
                 </div>

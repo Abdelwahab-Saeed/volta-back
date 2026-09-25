@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\Money;
 use Illuminate\Support\Facades\Http;
 
 class MetaService 
@@ -47,7 +48,7 @@ class MetaService
                     "custom_data" => [
                         "content_ids" => [(string)$product->id],
                         "content_type" => "product",
-                        "value" => $product->price,
+                        "value" => Money::toPounds($product->price),
                         "currency" => "EGP"
                     ]
                 ]
@@ -75,14 +76,14 @@ class MetaService
                     ],
                     "custom_data" => [
                         "currency" => "EGP",
-                        "value" => $order->total_amount,
+                        "value" => Money::toPounds($order->total_amount),
                         "content_type" => "product",
                         "content_ids" => $order->items->pluck('product_id')->map(fn($id) => (string)$id)->toArray(),
                         "contents" => $order->items->map(function ($item) {
                             return [
                                 "id" => (string)$item->product_id,
                                 "quantity" => $item->quantity,
-                                "item_price" => $item->price
+                                "item_price" => Money::toPounds($item->price)
                             ];
                         })->toArray(),
                     ]
@@ -122,7 +123,7 @@ class MetaService
                         "custom_data" => [
                             "content_ids" => [(string)$product->id],
                             "content_type" => "product",
-                            "value" => $product->price,
+                            "value" => Money::toPounds($product->price),
                             "currency" => "EGP"
                         ]
                     ]
@@ -147,7 +148,7 @@ class MetaService
                         "custom_data" => [
                             "content_ids" => [(string)$product->id],
                             "content_type" => "product",
-                            "value" => $product->price,
+                            "value" => Money::toPounds($product->price),
                             "currency" => "EGP"
                         ]
                     ]

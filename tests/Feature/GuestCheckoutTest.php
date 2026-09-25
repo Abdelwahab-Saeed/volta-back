@@ -30,7 +30,7 @@ class GuestCheckoutTest extends TestCase
             'name_en' => 'Test Product',
             'description_ar' => 'Test Description',
             'description_en' => 'Test Description',
-            'price' => 100.00,
+            'price' => 10000,
             'stock' => 10,
         ]);
 
@@ -56,13 +56,13 @@ class GuestCheckoutTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJsonPath('data.full_name', 'Guest User')
-            ->assertJsonPath('data.total_amount', 230.00); // (100 * 2) + 30 shipping
+            ->assertJsonPath('data.total_amount', 230); // (100 * 2) + 30 shipping
 
         // Verify order in database
         $this->assertDatabaseHas('orders', [
             'full_name' => 'Guest User',
             'user_id' => null,
-            'subtotal' => 200.00,
+            'subtotal' => 20000,
             'address_line' => '123 Main St',
         ]);
 
@@ -78,7 +78,7 @@ class GuestCheckoutTest extends TestCase
             'order_id' => $order->id,
             'product_id' => $product->id,
             'quantity' => 2,
-            'price' => 100.00,
+            'price' => 10000,
         ]);
     }
     

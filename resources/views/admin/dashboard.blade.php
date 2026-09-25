@@ -51,7 +51,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500 font-medium">إجمالي الإيرادات</p>
-                <p class="text-2xl font-bold"> {{ number_format($stats['total_revenue'], 2) }} ج.م</p>
+                <p class="text-2xl font-bold"> {{ \App\Support\Money::format($stats['total_revenue']) }} ج.م</p>
             </div>
         </div>
     </div>
@@ -64,7 +64,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500 font-medium">إجمالي المصروفات</p>
-                <p class="text-2xl font-bold text-rose-600"> {{ number_format($stats['total_expenses'], 2) }} ج.م</p>
+                <p class="text-2xl font-bold text-rose-600"> {{ \App\Support\Money::format($stats['total_expenses']) }} ج.م</p>
             </div>
         </div>
     </div>
@@ -106,7 +106,7 @@
                             @endswitch
                         </span>
                     </td>
-                    <td class="px-6 py-4 font-bold text-gray-800">{{ number_format($order->total_amount, 2) }} ج.م</td>
+                    <td class="px-6 py-4 font-bold text-gray-800">{{ \App\Support\Money::format($order->total_amount) }} ج.م</td>
                     <td class="px-6 py-4 text-gray-400 text-sm text-left">{{ $order->created_at?->format('Y/m/d') ?? 'غير متوفر' }}</td>
                 </tr>
                 @empty

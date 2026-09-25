@@ -23,7 +23,8 @@ class CouponSeeder extends Seeder
         ];
 
         foreach ($coupons as $coupon) {
-            Coupon::updateOrCreate(['code' => $coupon['code']], $coupon);
+            // Amounts above are in pounds.
+            Coupon::updateOrCreate(['code' => $coupon['code']], Coupon::fromInput($coupon));
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Support\Money;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,7 +30,7 @@ class NewOrderNotification extends Notification
         return [
             'order_id' => $this->order->id,
             'customer_name' => $this->order->full_name,
-            'total_amount' => $this->order->total_amount,
+            'total_amount' => Money::toPounds($this->order->total_amount), // stored in pounds, like existing notifications
             'message' => 'طلب جديد رقم #' . $this->order->id . ' بواسطة ' . $this->order->full_name,
         ];
     }

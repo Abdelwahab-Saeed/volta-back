@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CouponController extends Controller
 {
@@ -24,14 +25,14 @@ class CouponController extends Controller
         $request->validate([
             'code' => 'required|string|unique:coupons,code',
             'type' => 'required|in:fixed,percent',
-            'value' => 'required|numeric|min:0',
+            'value' => ['required', 'numeric', 'min:0', Rule::when($request->input('type') === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
             'max_uses' => 'nullable|integer|min:1',
         ]);
 
-        Coupon::create($request->all());
+        Coupon::create(Coupon::fromInput($request->all()));
 
         return redirect()->route('admin.coupons.index')->with('success', 'تم إضافة الكوبون بنجاح.');
     }
@@ -51,14 +52,14 @@ class CouponController extends Controller
         $request->validate([
             'code' => 'required|string|unique:coupons,code,' . $coupon->id,
             'type' => 'required|in:fixed,percent',
-            'value' => 'required|numeric|min:0',
+            'value' => ['required', 'numeric', 'min:0', Rule::when($request->input('type') === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',
             'starts_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after_or_equal:starts_at',
             'max_uses' => 'nullable|integer|min:1',
         ]);
 
-        $coupon->update($request->all());
+        $coupon->update(Coupon::fromInput($request->all(), $coupon->type));
 
         return redirect()->route('admin.coupons.index')->with('success', 'تم تحديث الكوبون بنجاح.');
     }

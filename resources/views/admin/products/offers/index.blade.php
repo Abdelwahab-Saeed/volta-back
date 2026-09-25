@@ -82,7 +82,7 @@
                     <tbody class="divide-y divide-gray-100">
                         @forelse($offers as $offer)
                             @php
-                                $unitPrice = $offer->bundle_price / $offer->quantity;
+                                $unitPrice = (int) round($offer->bundle_price / $offer->quantity);
                                 $originalTotal = $product->final_price * $offer->quantity;
                                 $saving = $originalTotal - $offer->bundle_price;
                             @endphp
@@ -92,16 +92,16 @@
                                 <span class="text-xs text-gray-500">قطع</span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="font-black text-blue-600 text-lg">{{ number_format($offer->bundle_price, 2) }} ج.م</div>
+                                <div class="font-black text-blue-600 text-lg">{{ \App\Support\Money::format($offer->bundle_price) }} ج.م</div>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <div class="text-sm font-bold text-gray-600">{{ number_format($unitPrice, 2) }} ج.م</div>
-                                <div class="text-xs text-gray-400 line-through">{{ number_format($product->final_price, 2) }}</div>
+                                <div class="text-sm font-bold text-gray-600">{{ \App\Support\Money::format($unitPrice) }} ج.م</div>
+                                <div class="text-xs text-gray-400 line-through">{{ \App\Support\Money::format($product->final_price) }}</div>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @if($saving > 0)
                                     <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                                        توفير {{ number_format($saving, 2) }} ج.م
+                                        توفير {{ \App\Support\Money::format($saving) }} ج.م
                                     </span>
                                 @else
                                     <span class="text-xs text-gray-400">-</span>

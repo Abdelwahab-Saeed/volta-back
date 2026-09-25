@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Money;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
@@ -41,7 +42,7 @@ class ProductController extends Controller
             'status' => 'boolean',
         ]);
 
-        $data = $request->except(['image']);
+        $data = Money::fromPoundsFields($request->except(['image']), ['price', 'discount_price', 'cost_price', 'shipping_cost']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {
@@ -84,7 +85,7 @@ class ProductController extends Controller
             'status' => 'sometimes|boolean',
         ]);
 
-        $data = $request->except(['image']);
+        $data = Money::fromPoundsFields($request->except(['image']), ['price', 'discount_price', 'cost_price', 'shipping_cost']);
         $data['status'] = $request->has('status');
 
         if ($request->hasFile('image')) {

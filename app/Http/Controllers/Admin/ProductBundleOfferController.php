@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Money;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductBundleOffer;
@@ -36,7 +37,7 @@ class ProductBundleOfferController extends Controller
 
         $product->bundleOffers()->create([
             'quantity' => $validated['quantity'],
-            'bundle_price' => $validated['bundle_price'],
+            'bundle_price' => Money::fromPounds($validated['bundle_price']),
             'is_active' => $request->has('is_active'),
         ]);
 
@@ -72,7 +73,7 @@ class ProductBundleOfferController extends Controller
 
         $offer->update([
             'quantity' => $validated['quantity'],
-            'bundle_price' => $validated['bundle_price'],
+            'bundle_price' => Money::fromPounds($validated['bundle_price']),
             'is_active' => $request->has('is_active'),
         ]);
 

@@ -33,7 +33,7 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-2">السعر الإجمالي (للكل)</label>
                     <div class="relative">
-                        <input type="number" name="bundle_price" value="{{ old('bundle_price', $offer->bundle_price) }}" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 transition-shadow bg-gray-50/50" required min="0" step="0.01">
+                        <input type="number" name="bundle_price" value="{{ old('bundle_price', \App\Support\Money::toPounds($offer->bundle_price)) }}" class="w-full rounded-xl border-gray-200 focus:border-blue-500 focus:ring focus:ring-blue-100 transition-shadow bg-gray-50/50" required min="0" step="0.01">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 font-bold text-xs">
                             ج.م
                         </div>
