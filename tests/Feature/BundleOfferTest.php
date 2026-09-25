@@ -23,7 +23,7 @@ class BundleOfferTest extends TestCase
             'category_id' => $category->id,
             'name_ar' => 'Bundle Product',
             'name_en' => 'Bundle Product',
-            'price' => 100,
+            'price' => 10000,
             'stock' => 50,
         ]);
 
@@ -31,7 +31,7 @@ class BundleOfferTest extends TestCase
         ProductBundleOffer::create([
             'product_id' => $product->id,
             'quantity' => 3,
-            'bundle_price' => 250,
+            'bundle_price' => 25000,
             'is_active' => true
         ]);
 
@@ -53,12 +53,12 @@ class BundleOfferTest extends TestCase
         $response->assertStatus(201);
         
         // Price should be 250 (Bundle) + 30 shipping = 280
-        $response->assertJsonPath('data.subtotal', 250.00); 
-        $response->assertJsonPath('data.total_amount', 280.00);
+        $response->assertJsonPath('data.subtotal', 250); 
+        $response->assertJsonPath('data.total_amount', 280);
 
         $this->assertDatabaseHas('orders', [
-            'subtotal' => 250.00,
-            'total_amount' => 280.00
+            'subtotal' => 25000,
+            'total_amount' => 28000
         ]);
     }
 
@@ -72,7 +72,7 @@ class BundleOfferTest extends TestCase
             'category_id' => $category->id,
             'name_ar' => 'Bundle Product',
             'name_en' => 'Bundle Product',
-            'price' => 100,
+            'price' => 10000,
             'stock' => 50,
         ]);
 
@@ -80,7 +80,7 @@ class BundleOfferTest extends TestCase
         ProductBundleOffer::create([
             'product_id' => $product->id,
             'quantity' => 3,
-            'bundle_price' => 250,
+            'bundle_price' => 25000,
             'is_active' => true
         ]);
 
@@ -101,7 +101,7 @@ class BundleOfferTest extends TestCase
         $response = $this->postJson('/api/checkout', $data);
 
         $response->assertStatus(201);
-        $response->assertJsonPath('data.subtotal', 200.00); 
+        $response->assertJsonPath('data.subtotal', 200); 
     }
 
     /**
@@ -114,7 +114,7 @@ class BundleOfferTest extends TestCase
             'category_id' => $category->id,
             'name_ar' => 'Bundle Product',
             'name_en' => 'Bundle Product',
-            'price' => 100,
+            'price' => 10000,
             'stock' => 50,
         ]);
 
@@ -122,7 +122,7 @@ class BundleOfferTest extends TestCase
         ProductBundleOffer::create([
             'product_id' => $product->id,
             'quantity' => 3,
-            'bundle_price' => 250,
+            'bundle_price' => 25000,
             'is_active' => true
         ]);
 
@@ -145,6 +145,6 @@ class BundleOfferTest extends TestCase
         $response = $this->postJson('/api/checkout', $data);
 
         $response->assertStatus(201);
-        $response->assertJsonPath('data.subtotal', 400.00); 
+        $response->assertJsonPath('data.subtotal', 400); 
     }
 }

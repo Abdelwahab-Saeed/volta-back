@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Support\Money;
 
 class PriceCalculator
 {
     /**
      * Calculate price for a product based on quantity.
+     * All amounts are integer piasters.
      * 
      * @param Product $product
      * @param int $quantity
@@ -31,11 +33,11 @@ class PriceCalculator
         if ($bundleOffer) {
             // Apply Fixed Bundle Price
             $totalPrice = $bundleOffer->bundle_price;
-            $finalUnitPrice = $totalPrice / $quantity;
+            $finalUnitPrice = (int) round($totalPrice / $quantity);
             
             $discountInfo = [
                 'type' => 'bundle_offer',
-                'name' => "عرض خاص ({$quantity} قطع بسعر {$bundleOffer->bundle_price})",
+                'name' => "عرض خاص ({$quantity} قطع بسعر " . Money::format($bundleOffer->bundle_price) . ")",
                 'min_quantity' => $quantity, // used as exact match
                 'bundle_price' => $bundleOffer->bundle_price,
             ];

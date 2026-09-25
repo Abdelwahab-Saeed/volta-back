@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\MoneyCast;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductBundleOffer extends Model
@@ -13,8 +14,11 @@ class ProductBundleOffer extends Model
         'is_active',
     ];
 
+    // Pre-piasters backup columns, removed by the drop_legacy_money_columns migration.
+    protected $hidden = ['bundle_price_legacy'];
+
     protected $casts = [
-        'bundle_price' => 'decimal:2',
+        'bundle_price' => MoneyCast::class,
         'is_active' => 'boolean',
     ];
 

@@ -18,6 +18,7 @@
                     <th class="px-6 py-4 text-right">رقم الطلب</th>
                     <th class="px-6 py-4 text-right">العميل</th>
                     <th class="px-6 py-4 text-center">إجمالي المبلغ</th>
+                    <th class="px-6 py-4 text-center">العرض</th>
                     <th class="px-6 py-4 text-center">الحالة</th>
                     <th class="px-6 py-4 text-center">التاريخ</th>
                     <th class="px-6 py-4 text-left">العمليات</th>
@@ -37,8 +38,18 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm font-black text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">
-                            {{ number_format($order->total_amount, 2) }} ج.م
+                            {{ \App\Support\Money::format($order->total_amount) }} ج.م
                         </span>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        @if($order->offer_id)
+                            <div class="flex flex-col items-center gap-1">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{{ $order->offer->name_ar ?? 'عرض' }}</span>
+                                <span class="text-xs text-green-600 font-bold">-{{ number_format($order->offer_discount, 2) }} ج.م</span>
+                            </div>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
                     </td>
                     <td class="px-6 py-4 text-center">
                         <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="inline-block relative">

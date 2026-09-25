@@ -23,26 +23,42 @@
                     @endif
                     <div class="flex-1">
                         <h4 class="font-bold text-gray-900">{{ $item->product->name ?? 'منتج محذوف' }}</h4>
-                        <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ number_format($item->price, 2) }} ج.م</p>
+                        <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ \App\Support\Money::format($item->price) }} ج.م</p>
                     </div>
                     <div class="text-left">
-                        <p class="font-bold text-gray-900">{{ number_format($item->price, 2) }} ج.م</p>
+                        <p class="font-bold text-gray-900">{{ \App\Support\Money::format($item->price) }} ج.م</p>
                     </div>
                 </div>
                 @endforeach
             </div>
             <div class="p-6 bg-gray-50 border-t border-gray-100">
-                <div class="flex justify-between text-sm mb-2 text-gray-600">
-                    <span class="text-lg">الخصم المطبق</span>
-                    <span class="text-red-500 text-lg">{{ number_format($order->discount_amount, 2) }}- ج.م</span>
+                <div class="flex justify-between text-sm mb-3 text-gray-600">
+                    <span class="text-lg">الإجمالي الفرعي (قبل الخصم)</span>
+                    <span class="text-lg font-medium">{{ number_format($order->subtotal, 2) }} ج.م</span>
                 </div>
-                <div class="flex justify-between text-sm mb-2 text-gray-600">
+                
+                @if($order->discount_amount > 0)
+                <div class="flex justify-between text-sm mb-2 text-green-600 font-bold bg-green-50 p-2 rounded">
+                    <span class="text-lg">خصم الكوبون</span>
+                    <span class="text-lg">{{ \App\Support\Money::format($order->discount_amount) }}- ج.م</span>
+                </div>
+                @endif
+
+                @if($order->offer_discount > 0)
+                <div class="flex justify-between text-sm mb-2 text-blue-600 font-bold bg-blue-50 p-2 rounded">
+                    <span class="text-lg">خصم العرض</span>
+                    <span class="text-lg">{{ number_format($order->offer_discount, 2) }}- ج.م</span>
+                </div>
+                @endif
+
+                <div class="flex justify-between text-sm mb-4 text-gray-600">
                     <span class="text-lg">تكلفة الشحن</span>
-                    <span class="text-gray-600 text-lg">{{ number_format($order->shipping_cost, 2) }} ج.م</span>
+                    <span class="text-gray-600 text-lg">{{ \App\Support\Money::format($order->shipping_cost) }} ج.م</span>
                 </div>
-                <div class="flex justify-between text-lg font-black text-gray-900">
-                    <span>الإجمالي النهائي</span>
-                    <span>{{ number_format($order->total_amount, 2) }} ج.م</span>
+                
+                <div class="flex justify-between text-xl font-black text-primary border-t border-gray-200 pt-4">
+                    <span>الإجمالي النهائي (بعد الخصم)</span>
+                    <span>{{ \App\Support\Money::format($order->total_amount) }} ج.م</span>
                 </div>
             </div>
         </div>
@@ -88,6 +104,48 @@
                 </p>
             </div>
         </div>
+
+        @if($order->offer_id)
+        <div class="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-5 h-5 ml-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                تفاصيل العرض المطبق
+            </h3>
+            <div class="space-y-3">
+                @if($order->offer?->image)
+                    <img src="{{ asset('storage/' . $order->offer->image) }}" class="w-full h-28 rounded-xl object-cover">
+                @endif
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">اسم العرض</p>
+                    <p class="font-bold text-gray-800">{{ $order->offer->name_ar ?? '—' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">نوع العرض</p>
+                    @php
+                        $tl = match($order->offer?->type) {
+                            'percentage'    => 'نسبة مئوية',
+                            'fixed'         => 'مبلغ ثابت',
+                            'bundle'        => 'باقة منتجات',
+                            'buy_x_get_y'   => 'اشترِ X احصل Y',
+                            'spend_x_get_y' => 'اصرف X احصل Y',
+                            default         => $order->offer?->type ?? '—',
+                        };
+                    @endphp
+                    <p class="font-bold text-blue-600">{{ $tl }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">الخصم المحصّل</p>
+                    <p class="font-black text-green-600 text-lg">{{ number_format($order->offer_discount, 2) }} ج.م</p>
+                </div>
+                @if($order->offer?->expires_at)
+                <div>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">تاريخ انتهاء العرض</p>
+                    <p class="font-semibold text-gray-700">{{ $order->offer->expires_at->format('Y/m/d H:i') }}</p>
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-bold text-gray-800 mb-4">تحديث الحالة</h3>

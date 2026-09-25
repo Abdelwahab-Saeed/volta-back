@@ -23,7 +23,7 @@ class MetaPixelTest extends TestCase
         $product = new Product([
             'id' => 1,
             'name_en' => 'Test Product',
-            'price' => 100,
+            'price' => 10000,
         ]);
 
         $service = new \App\Services\MetaService();
@@ -41,7 +41,7 @@ class MetaPixelTest extends TestCase
 
         $order = new Order([
             'id' => 123,
-            'total_amount' => 500,
+            'total_amount' => 50000,
         ]);
         // Mocking total since it might be accessed as $order->total in MetaService.php
         $order->total = 500; 

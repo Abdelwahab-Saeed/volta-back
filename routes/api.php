@@ -29,6 +29,11 @@ Route::get('/products/{product}', [ProductController::class, 'show']);
 // BANNERS
 Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index']);
 
+// OFFERS
+Route::get('/offers', [App\Http\Controllers\Api\OfferController::class, 'index']);
+Route::get('/offers/all', [App\Http\Controllers\Api\OfferController::class, 'all']);
+Route::get('/offers/{id}', [App\Http\Controllers\Api\OfferController::class, 'show']);
+
 // POSTS (BLOG)
 Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
 Route::get('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'show']);

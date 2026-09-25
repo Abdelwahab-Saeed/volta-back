@@ -103,10 +103,10 @@ class OrderSeeder extends Seeder
         $subtotal = $lines->sum('total_price');
 
         $shippingCost = $lines->sum(fn (array $line) => $line['product']->shipping_cost * $line['quantity']);
-        $shippingCost = $shippingCost > 0 ? $shippingCost : 30;
+        $shippingCost = $shippingCost > 0 ? $shippingCost : 3000;
 
         $coupon = fake()->boolean(25) ? $this->pickCoupon($coupons, $customer, $subtotal) : null;
-        $discount = $coupon ? round($coupon->calculateDiscount($subtotal), 2) : 0;
+        $discount = $coupon ? $coupon->calculateDiscount($subtotal) : 0;
 
         $address = $customer?->addresses->firstWhere('is_default', true);
         [$state, $city] = $address ? [$address->state, $address->city] : MockData::location();
@@ -164,7 +164,7 @@ class OrderSeeder extends Seeder
         });
     }
 
-    private function pickCoupon(Collection $coupons, ?User $customer, float $subtotal): ?Coupon
+    private function pickCoupon(Collection $coupons, ?User $customer, int $subtotal): ?Coupon
     {
         return $coupons
             ->filter(fn (Coupon $coupon) => $coupon->isValid($subtotal))
