@@ -38,7 +38,7 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm font-black text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">
-                            {{ number_format($order->total_amount, 2) }} ج.م
+                            {{ \App\Support\Money::format($order->total_amount) }} ج.م
                         </span>
                     </td>
                     <td class="px-6 py-4 text-center">

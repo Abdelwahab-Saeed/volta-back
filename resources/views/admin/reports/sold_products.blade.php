@@ -38,10 +38,10 @@
                     </td>
                     <td class="px-6 py-4 font-bold text-gray-800">{{ $item->total_quantity }} وحدة</td>
                     <td class="px-6 py-4 font-bold text-blue-600">
-                        {{ number_format($item->total_revenue / $item->total_quantity, 2) }} ج.م
+                        {{ \App\Support\Money::format($item->total_revenue / $item->total_quantity) }} ج.م
                     </td>
                     <td class="px-6 py-4 font-black text-emerald-600">
-                        {{ number_format($item->total_revenue, 2) }} ج.م
+                        {{ \App\Support\Money::format($item->total_revenue) }} ج.م
                     </td>
                 </tr>
                 @empty

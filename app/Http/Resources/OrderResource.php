@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,10 +28,10 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'payment_method' => $this->payment_method,
             'notes' => $this->notes,
-            'subtotal' => (float) $this->subtotal,
-            'shipping_cost' => (float) $this->shipping_cost,
-            'discount_amount' => (float) $this->discount_amount,
-            'total_amount' => (float) $this->total_amount,
+            'subtotal' => (float) Money::toPounds($this->subtotal),
+            'shipping_cost' => (float) Money::toPounds($this->shipping_cost),
+            'discount_amount' => (float) Money::toPounds($this->discount_amount),
+            'total_amount' => (float) Money::toPounds($this->total_amount),
             'coupon_code' => $this->coupon_code,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

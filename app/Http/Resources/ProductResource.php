@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Money;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,11 +23,11 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'description_ar' => $this->description_ar,
             'description_en' => $this->description_en,
-            'price' => (float) $this->price,
-            'final_price' => (float) $this->final_price,
+            'price' => (float) Money::toPounds($this->price),
+            'final_price' => (float) Money::toPounds($this->final_price),
             'discount' => (float) $this->discount,
-            'discount_price' => (float) $this->discount_price,
-            'shipping_cost' => (float) $this->shipping_cost,
+            'discount_price' => (float) Money::toPounds($this->discount_price),
+            'shipping_cost' => (float) Money::toPounds($this->shipping_cost),
             'stock' => (int) $this->stock,
             'image' => $this->image,
             'preview_url' => $this->preview_url,

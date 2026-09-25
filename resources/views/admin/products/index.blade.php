@@ -51,13 +51,13 @@
                         <span class="text-sm font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">{{ $product->category->name ?? 'غير محدد' }}</span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <div class="text-sm font-black text-slate-900">{{ number_format($product->final_price, 2) }} ج.م</div>
+                        <div class="text-sm font-black text-slate-900">{{ \App\Support\Money::format($product->final_price) }} ج.م</div>
                         @if($product->discount_price > 0 || $product->discount > 0)
-                            <div class="text-[10px] text-gray-400 line-through">{{ number_format($product->price, 2) }} ج.م</div>
+                            <div class="text-[10px] text-gray-400 line-through">{{ \App\Support\Money::format($product->price) }} ج.م</div>
                         @endif
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <div class="text-sm font-bold text-gray-700">{{ number_format($product->cost_price, 2) }} ج.م</div>
+                        <div class="text-sm font-bold text-gray-700">{{ \App\Support\Money::format($product->cost_price) }} ج.م</div>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm font-bold {{ $product->stock <= 5 ? 'text-red-500 bg-red-50' : 'text-gray-600 bg-gray-50' }} px-3 py-1 rounded-lg">

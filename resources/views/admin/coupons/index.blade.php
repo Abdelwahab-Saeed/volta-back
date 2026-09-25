@@ -40,10 +40,10 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-center font-bold text-gray-800">
-                        {{ $coupon->value }} {{ $coupon->type === 'percent' ? '%' : 'ر.س' }}
+                        {{ $coupon->type === 'fixed' ? \App\Support\Money::format($coupon->value) : $coupon->value }} {{ $coupon->type === 'percent' ? '%' : 'ر.س' }}
                     </td>
                     <td class="px-6 py-4 text-center text-gray-600">
-                        {{ $coupon->min_order_amount ?: 'بدون حد' }}
+                        {{ $coupon->min_order_amount ? \App\Support\Money::format($coupon->min_order_amount) : 'بدون حد' }}
                     </td>
                     <td class="px-6 py-4 text-center">
                         <div class="flex flex-col items-center">

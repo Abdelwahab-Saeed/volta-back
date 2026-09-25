@@ -23,10 +23,10 @@
                     @endif
                     <div class="flex-1">
                         <h4 class="font-bold text-gray-900">{{ $item->product->name ?? 'منتج محذوف' }}</h4>
-                        <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ number_format($item->price, 2) }} ج.م</p>
+                        <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ \App\Support\Money::format($item->price) }} ج.م</p>
                     </div>
                     <div class="text-left">
-                        <p class="font-bold text-gray-900">{{ number_format($item->price, 2) }} ج.م</p>
+                        <p class="font-bold text-gray-900">{{ \App\Support\Money::format($item->price) }} ج.م</p>
                     </div>
                 </div>
                 @endforeach
@@ -40,7 +40,7 @@
                 @if($order->discount_amount > 0)
                 <div class="flex justify-between text-sm mb-2 text-green-600 font-bold bg-green-50 p-2 rounded">
                     <span class="text-lg">خصم الكوبون</span>
-                    <span class="text-lg">{{ number_format($order->discount_amount, 2) }}- ج.م</span>
+                    <span class="text-lg">{{ \App\Support\Money::format($order->discount_amount) }}- ج.م</span>
                 </div>
                 @endif
 
@@ -53,12 +53,12 @@
 
                 <div class="flex justify-between text-sm mb-4 text-gray-600">
                     <span class="text-lg">تكلفة الشحن</span>
-                    <span class="text-gray-600 text-lg">{{ number_format($order->shipping_cost, 2) }} ج.م</span>
+                    <span class="text-gray-600 text-lg">{{ \App\Support\Money::format($order->shipping_cost) }} ج.م</span>
                 </div>
                 
                 <div class="flex justify-between text-xl font-black text-primary border-t border-gray-200 pt-4">
                     <span>الإجمالي النهائي (بعد الخصم)</span>
-                    <span>{{ number_format($order->total_amount, 2) }} ج.م</span>
+                    <span>{{ \App\Support\Money::format($order->total_amount) }} ج.م</span>
                 </div>
             </div>
         </div>

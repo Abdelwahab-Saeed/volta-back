@@ -153,7 +153,7 @@ class CheckoutController extends Controller
 
         // If no shipping cost is defined on products, fallback to a default or zero
         if ($shippingCost == 0) {
-            $shippingCost = 30.00; // Keep the default 30 if no product has shipping cost
+            $shippingCost = 3000; // Default 30 EGP (in piasters) if no product has shipping cost
         }
 
         // Total discount = coupon discount + offer discount

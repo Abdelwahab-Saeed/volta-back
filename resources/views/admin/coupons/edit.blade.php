@@ -29,14 +29,14 @@
             <!-- Value -->
             <div>
                 <label for="value" class="block text-sm font-bold text-gray-700 mb-2">قيمة الخصم</label>
-                <input type="number" name="value" id="value" value="{{ old('value', $coupon->value) }}" placeholder="مثلاً: 10"
+                <input type="number" name="value" id="value" value="{{ old('value', $coupon->type === 'fixed' ? \App\Support\Money::toPounds($coupon->value) : $coupon->value) }}" placeholder="مثلاً: 10"
                     class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
             </div>
 
             <!-- Min Order Amount -->
             <div>
                 <label for="min_order_amount" class="block text-sm font-bold text-gray-700 mb-2">الحد الأدنى للطلب</label>
-                <input type="number" name="min_order_amount" id="min_order_amount" value="{{ old('min_order_amount', $coupon->min_order_amount) }}" placeholder="اختياري"
+                <input type="number" name="min_order_amount" id="min_order_amount" value="{{ old('min_order_amount', \App\Support\Money::toPounds($coupon->min_order_amount)) }}" placeholder="اختياري"
                     class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
             </div>
 
