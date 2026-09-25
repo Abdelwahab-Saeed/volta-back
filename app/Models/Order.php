@@ -28,13 +28,16 @@ class Order extends Model
         'discount_amount',
         'total_amount',
         'coupon_code',
+        'offer_id',
+        'offer_discount',
     ];
 
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'shipping_cost' => 'decimal:2',
+        'subtotal'        => 'decimal:2',
+        'shipping_cost'   => 'decimal:2',
         'discount_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
+        'total_amount'    => 'decimal:2',
+        'offer_discount'  => 'decimal:2',
     ];
 
     public function user()
@@ -45,6 +48,11 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function offer()
+    {
+        return $this->belongsTo(Offer::class);
     }
 
 

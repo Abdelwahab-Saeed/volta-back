@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Coupon;
+use App\Models\Offer;
 use App\Models\Product;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -40,16 +41,17 @@ class CheckoutController extends Controller
         $user = Auth::guard('sanctum')->user();
 
         $validationRules = [
-            'full_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:255',
+            'full_name'        => 'required|string|max:255',
+            'phone_number'     => 'required|string|max:255',
             'phone_number_backup' => 'nullable|string|max:255',
-            'city' => 'required|string|max:255',
-            'state' => 'required|string|max:255',
-            'address_line' => 'nullable|string|max:255',
-            'shipping_way' => 'required|string|in:home,office,pickup',
-            'coupon_code' => 'nullable|string|exists:coupons,code',
-            'payment_method' => ['required', Rule::in(PaymentMethod::values())],
-            'notes' => 'nullable|string',
+            'city'             => 'required|string|max:255',
+            'state'            => 'required|string|max:255',
+            'address_line'     => 'nullable|string|max:255',
+            'shipping_way'     => 'required|string|in:home,office,pickup',
+            'coupon_code'      => 'nullable|string|exists:coupons,code',
+            'offer_id'         => 'nullable|exists:offers,id',
+            'payment_method'   => ['required', Rule::in(PaymentMethod::values())],
+            'notes'            => 'nullable|string',
         ];
 
         if (!$user) {
@@ -128,6 +130,23 @@ class CheckoutController extends Controller
             }
         }
 
+        // Apply Offer discount (cannot be combined with coupon)
+        $offerDiscount  = 0;
+        $offer          = null;
+        $offerFreeItems = [];
+
+        if ($request->offer_id && !$coupon) {
+            $offer = Offer::active()->with('products')->find($request->offer_id);
+
+            if (!$offer) {
+                return $this->errorResponse('العرض غير متاح أو انتهت صلاحيته', 422);
+            }
+
+            $result        = $offer->calculateDiscount($processedItems, $subtotal);
+            $offerDiscount = $result['discount'];
+            $offerFreeItems = $result['free_items']; // for buy_x_get_y with different product
+        }
+
         $shippingCost = $processedItems->sum(function ($item) {
             return ($item->product->shipping_cost ?? 0) * $item->quantity;
         });
@@ -137,7 +156,9 @@ class CheckoutController extends Controller
             $shippingCost = 30.00; // Keep the default 30 if no product has shipping cost
         }
 
-        $totalAmount = max(0, $subtotal - $discountAmount) + $shippingCost;
+        // Total discount = coupon discount + offer discount
+        $totalDiscount = $discountAmount + $offerDiscount;
+        $totalAmount   = max(0, $subtotal - $totalDiscount) + $shippingCost;
 
         try {
             DB::beginTransaction();
@@ -156,22 +177,24 @@ class CheckoutController extends Controller
 
             // Create Order with enum values
             $order = Order::create([
-                'user_id' => $user ? $user->id : null,
-                'full_name' => $request->full_name,
-                'phone_number' => $request->phone_number,
+                'user_id'             => $user ? $user->id : null,
+                'full_name'           => $request->full_name,
+                'phone_number'        => $request->phone_number,
                 'phone_number_backup' => $request->phone_number_backup,
-                'city' => $request->city,
-                'state' => $request->state,
-                'address_line' => $request->address_line,
-                'shipping_way' => $request->shipping_way,
-                'status' => OrderStatus::PENDING->value,
-                'payment_method' => $request->payment_method,
-                'notes' => $request->notes,
-                'subtotal' => $subtotal,
-                'shipping_cost' => $shippingCost,
-                'discount_amount' => $discountAmount,
-                'total_amount' => $totalAmount,
-                'coupon_code' => $coupon ? $coupon->code : null,
+                'city'                => $request->city,
+                'state'               => $request->state,
+                'address_line'        => $request->address_line,
+                'shipping_way'        => $request->shipping_way,
+                'status'              => OrderStatus::PENDING->value,
+                'payment_method'      => $request->payment_method,
+                'notes'               => $request->notes,
+                'subtotal'            => $subtotal,
+                'shipping_cost'       => $shippingCost,
+                'discount_amount'     => $discountAmount,
+                'total_amount'        => $totalAmount,
+                'coupon_code'         => $coupon ? $coupon->code : null,
+                'offer_id'            => $offer ? $offer->id : null,
+                'offer_discount'      => $offerDiscount,
             ]);
 
             // Create Order Items using calculated prices

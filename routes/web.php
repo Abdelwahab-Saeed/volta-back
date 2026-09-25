@@ -40,6 +40,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('users', UserController::class);
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
     Route::resource('coupons', CouponController::class);
+    Route::resource('offers', App\Http\Controllers\Admin\OfferController::class);
     Route::resource('banners', BannerController::class);
     Route::resource('posts', AdminPostController::class);
     
