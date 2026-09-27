@@ -13,6 +13,8 @@ Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index']
 
 // CHECKOUT
 Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 'store']);
+// Offers are bought directly, never through the cart
+Route::post('/checkout/offer', [App\Http\Controllers\Api\OfferCheckoutController::class, 'store']);
 
 // TRACKING
 Route::post('/track/pageview', [App\Http\Controllers\Api\TrackingController::class, 'pageView']);
@@ -33,6 +35,7 @@ Route::get('/banners', [App\Http\Controllers\Api\BannerController::class, 'index
 Route::get('/offers', [App\Http\Controllers\Api\OfferController::class, 'index']);
 Route::get('/offers/all', [App\Http\Controllers\Api\OfferController::class, 'all']);
 Route::get('/offers/{id}', [App\Http\Controllers\Api\OfferController::class, 'show']);
+Route::get('/offers/{id}/quote', [App\Http\Controllers\Api\OfferController::class, 'quote']);
 
 // POSTS (BLOG)
 Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
@@ -71,12 +74,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [ProductController::class, 'store']);
         Route::put('/products/{product}', [ProductController::class, 'update']);
         Route::delete('/products/{product}', [ProductController::class, 'destroy']);
-
-        // BUNDLE OFFERS
-        Route::get('/products/{product}/bundle-offers', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'index']);
-        Route::post('/products/{product}/bundle-offers', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'store']);
-        Route::put('/bundle-offers/{offer}', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'update']);
-        Route::delete('/bundle-offers/{offer}', [App\Http\Controllers\Api\ProductBundleOfferController::class, 'destroy']);
     });
 
     // CART

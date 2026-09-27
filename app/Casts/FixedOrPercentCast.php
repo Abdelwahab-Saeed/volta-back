@@ -6,9 +6,10 @@ use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * coupons.value holds piasters for "fixed" coupons and a whole percentage for "percent" coupons.
+ * A "value" column that holds piasters when the row's type is "fixed" and a whole percentage otherwise
+ * (coupons.value, offers.value).
  */
-class CouponValueCast extends MoneyCast
+class FixedOrPercentCast extends MoneyCast
 {
     public function serialize(Model $model, string $key, mixed $value, array $attributes): ?string
     {

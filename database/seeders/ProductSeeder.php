@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Offer;
 use App\Models\Product;
 use Database\Seeders\Support\PlaceholderImage;
 use Illuminate\Database\Seeder;
@@ -112,6 +113,58 @@ class ProductSeeder extends Seeder
                 $this->createProduct($category, $nameEn, $nameAr, $price);
             }
         }
+
+        $this->createOffers();
+    }
+
+    /**
+     * A few offers of each type, bought from the offer page.
+     */
+    private function createOffers(): void
+    {
+        $products = Product::where('status', true)->where('stock', '>', 0)->orderBy('id')->get();
+        if ($products->count() < 4) {
+            return;
+        }
+
+        // "2 × A for less" and "3 × A for less" (what the old per-product quantity offers did)
+        foreach ($products->take(2) as $product) {
+            foreach ([2 => 0.9, 3 => 0.85] as $quantity => $factor) {
+                $offer = Offer::create([
+                    'name_ar' => "{$quantity} قطع من {$product->name_ar}",
+                    'name_en' => "{$quantity} × {$product->name_en}",
+                    'type' => 'bundle',
+                    'bundle_price' => (int) round($product->final_price * $quantity * $factor, -2), // whole pounds
+                    'is_active' => true,
+                ]);
+                $offer->products()->attach($product->id, ['quantity' => $quantity]);
+            }
+        }
+
+        // "A + B for less"
+        [$a, $b] = [$products[2], $products[3]];
+        $offer = Offer::create([
+            'name_ar' => "باقة {$a->name_ar} + {$b->name_ar}",
+            'name_en' => "{$a->name_en} + {$b->name_en} bundle",
+            'type' => 'bundle',
+            'bundle_price' => (int) round(($a->final_price + $b->final_price) * 0.85, -2),
+            'is_active' => true,
+        ]);
+        $offer->products()->attach([$a->id => ['quantity' => 1], $b->id => ['quantity' => 1]]);
+
+        // "Buy 2, get the 3rd free" and "buy 2, get the 3rd half price"
+        foreach ([100 => ['اشترِ 2 والثالثة مجاناً', 'Buy 2, get the 3rd free'], 50 => ['اشترِ 2 والثالثة بنصف السعر', 'Buy 2, get the 3rd half price']] as $percent => [$ar, $en]) {
+            $offer = Offer::create([
+                'name_ar' => $ar,
+                'name_en' => $en,
+                'type' => 'buy_x_get_y',
+                'buy_quantity' => 2,
+                'get_quantity' => 1,
+                'get_discount_percent' => $percent,
+                'is_active' => true,
+            ]);
+            $offer->products()->attach($products->slice(4, 3)->pluck('id')->all());
+        }
     }
 
     private function createProduct(Category $category, string $nameEn, string $nameAr, int $pounds): void
@@ -143,17 +196,6 @@ class ProductSeeder extends Seeder
             $product->extraImages()->create([
                 'image' => PlaceholderImage::make('uploads/products', "{$nameEn} - {$view}"),
             ]);
-        }
-
-        // Bundle price is the total for exactly that quantity (see PriceCalculator).
-        if ($pounds <= 700) {
-            foreach ([2 => 0.9, 3 => 0.85] as $quantity => $factor) {
-                $product->bundleOffers()->create([
-                    'quantity' => $quantity,
-                    'bundle_price' => (int) round($product->final_price * $quantity * $factor, -2), // whole pounds
-                    'is_active' => true,
-                ]);
-            }
         }
     }
 }

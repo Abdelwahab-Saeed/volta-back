@@ -4,9 +4,29 @@ namespace App\Services;
 
 use App\Support\Money;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MetaService 
 {
+    /**
+     * Send events to the Meta Conversions API. Tracking must never break the request that triggered it
+     * (a failed call used to turn a successful checkout into a 500 after the order was already saved),
+     * so it is skipped when not configured, has a short timeout, and failures are only logged.
+     */
+    private function send(array $payload): void
+    {
+        $pixelId = config('services.meta.pixel_id');
+        $token = config('services.meta.access_token');
+        if (!$pixelId || !$token) {
+            return;
+        }
+
+        try {
+            Http::timeout(3)->post("https://graph.facebook.com/v18.0/{$pixelId}/events?access_token={$token}", $payload);
+        } catch (\Throwable $e) {
+            Log::warning('Meta Conversions API call failed', ['event' => $payload['data'][0]['event_name'] ?? null, 'error' => $e->getMessage()]);
+        }
+    }
     private function hashData($data)
     {
         return $data ? hash('sha256', strtolower(trim($data))) : null;
@@ -36,7 +56,7 @@ class MetaService
 
     public function sendViewContent($product)
     {
-        Http::post("https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'), [
+        $this->send([
             "data" => [
                 [
                     "event_name" => "ViewContent",
@@ -58,7 +78,7 @@ class MetaService
 
     public function sendPurchase($order)
     {
-        Http::post("https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'), [
+        $this->send([
             "data" => [
                 [
                     "event_name" => "Purchase",
@@ -94,7 +114,7 @@ class MetaService
 
     public function sendRegistration($user)
     {
-        Http::post("https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'), [
+        $this->send([
             "data" => [
                 [
                     "event_name" => "CompleteRegistration",
@@ -109,9 +129,7 @@ class MetaService
 
     public function sendAddToCart($product, $user = null)
     {
-        Http::post(
-            "https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'),
-            [
+        $this->send([
                 "data" => [
                     [
                         "event_name" => "AddToCart",
@@ -134,9 +152,7 @@ class MetaService
 
     public function sendAddToWishlist($product, $user = null)
     {
-        Http::post(
-            "https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'),
-            [
+        $this->send([
                 "data" => [
                     [
                         "event_name" => "AddToWishlist",
@@ -159,9 +175,7 @@ class MetaService
 
     public function sendPageView($url, $user = null)
     {
-        Http::post(
-            "https://graph.facebook.com/v18.0/" . config('services.meta.pixel_id') . "/events?access_token=" . config('services.meta.access_token'),
-            [
+        $this->send([
                 "data" => [
                     [
                         "event_name" => "PageView",

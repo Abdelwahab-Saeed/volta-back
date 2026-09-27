@@ -45,12 +45,9 @@
                     <td class="px-6 py-4 text-center">
                         @php
                             $typeBadge = match($offer->type) {
-                                'percentage'    => ['label' => 'نسبة مئوية', 'class' => 'bg-purple-100 text-purple-700'],
-                                'fixed'         => ['label' => 'مبلغ ثابت', 'class' => 'bg-blue-100 text-blue-700'],
-                                'bundle'        => ['label' => 'باقة', 'class' => 'bg-orange-100 text-orange-700'],
-                                'buy_x_get_y'   => ['label' => 'اشترِ X احصل Y', 'class' => 'bg-green-100 text-green-700'],
-                                'spend_x_get_y' => ['label' => 'اصرف X احصل Y', 'class' => 'bg-pink-100 text-pink-700'],
-                                default         => ['label' => $offer->type, 'class' => 'bg-gray-100 text-gray-700'],
+                                'bundle'      => ['label' => 'باقة بسعر ثابت', 'class' => 'bg-orange-100 text-orange-700'],
+                                'buy_x_get_y' => ['label' => 'اشترِ X احصل Y', 'class' => 'bg-green-100 text-green-700'],
+                                default       => ['label' => $offer->type, 'class' => 'bg-gray-100 text-gray-700'],
                             };
                         @endphp
                         <span class="px-3 py-1 rounded-full text-xs font-bold {{ $typeBadge['class'] }}">{{ $typeBadge['label'] }}</span>
@@ -67,7 +64,7 @@
                     </td>
                     <td class="px-6 py-4 text-center">
                         @if($offer->expires_at)
-                            <span class="text-sm text-gray-500 font-medium">{{ $offer->expires_at->format('Y/m/d') }}</span>
+                            <span class="text-sm text-gray-500 font-medium">{{ $offer->expires_at->timezone(\App\Http\Controllers\Admin\OfferController::ADMIN_TIMEZONE)->format('Y/m/d') }}</span>
                         @else
                             <span class="text-xs text-gray-400 italic">بلا انتهاء</span>
                         @endif

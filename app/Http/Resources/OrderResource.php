@@ -33,6 +33,16 @@ class OrderResource extends JsonResource
             'discount_amount' => (float) Money::toPounds($this->discount_amount),
             'total_amount' => (float) Money::toPounds($this->total_amount),
             'coupon_code' => $this->coupon_code,
+            'offer_id' => $this->offer_id,
+            'offer_discount' => (float) Money::toPounds($this->offer_discount),
+            // The offer as it was when bought (it may have been edited or deleted since)
+            'offer' => $this->offer_snapshot ? [
+                'id' => $this->offer_snapshot['id'],
+                'name_ar' => $this->offer_snapshot['name_ar'],
+                'name_en' => $this->offer_snapshot['name_en'],
+                'type' => $this->offer_snapshot['type'],
+                'sets' => $this->offer_snapshot['sets'],
+            ] : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),

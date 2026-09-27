@@ -2,56 +2,37 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\InsufficientStockException;
+use App\Http\Controllers\Api\Concerns\PlacesOrders;
 use App\Http\Controllers\Controller;
-use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\Coupon;
-use App\Models\Offer;
 use App\Models\Product;
-use App\Enums\OrderStatus;
-use App\Enums\PaymentMethod;
+use App\Services\OrderPlacer;
+use App\Services\PriceCalculator;
+use App\Support\Money;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
-use App\Traits\ApiResponse;
-
+/**
+ * Checkout of the cart (or, for guests, the items sent in the request). Offers are not bought here:
+ * they have their own checkout (OfferCheckoutController). Cart-wide discounts are coupons.
+ */
 class CheckoutController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, PlacesOrders;
 
-    /**
-     * Handle the incoming checkout request.
-     */
-    protected $priceCalculator;
-    protected $metaService;
-
-    public function __construct(\App\Services\PriceCalculator $priceCalculator, \App\Services\MetaService $metaService)
+    public function __construct(private PriceCalculator $priceCalculator, private OrderPlacer $orderPlacer)
     {
-        $this->priceCalculator = $priceCalculator;
-        $this->metaService = $metaService;
     }
 
-    /**
-     * Handle the incoming checkout request.
-     */
     public function store(Request $request)
     {
         $user = Auth::guard('sanctum')->user();
 
-        $validationRules = [
-            'full_name'        => 'required|string|max:255',
-            'phone_number'     => 'required|string|max:255',
-            'phone_number_backup' => 'nullable|string|max:255',
-            'city'             => 'required|string|max:255',
-            'state'            => 'required|string|max:255',
-            'address_line'     => 'nullable|string|max:255',
-            'shipping_way'     => 'required|string|in:home,office,pickup',
-            'coupon_code'      => 'nullable|string|exists:coupons,code',
-            'offer_id'         => 'nullable|exists:offers,id',
-            'payment_method'   => ['required', Rule::in(PaymentMethod::values())],
-            'notes'            => 'nullable|string',
+        $validationRules = $this->customerRules() + [
+            'coupon_code' => 'nullable|string|exists:coupons,code',
+            'offer_id'    => 'prohibited',
         ];
 
         if (!$user) {
@@ -60,13 +41,19 @@ class CheckoutController extends Controller
             $validationRules['items.*.quantity'] = 'required|integer|min:1';
         }
 
-        $request->validate($validationRules);
+        $request->validate($validationRules, [
+            'offer_id.prohibited' => 'العروض تُشترى مباشرة من صفحة العرض، وليس من السلة.',
+        ]);
 
+        if ($existing = $this->orderPlacer->findByIdempotencyKey($this->idempotencyKey($request))) {
+            return $this->orderCreatedResponse($existing, replayed: true);
+        }
+
+        $cart = null;
         $cartItems = collect();
 
         if ($user) {
-            // Eager load cart with items and products (and bundle offers) to eliminate N+1 queries
-            $cart = $user->cart()->with('items.product.bundleOffers')->first();
+            $cart = $user->cart()->with('items.product')->first();
 
             if (!$cart || $cart->items->isEmpty()) {
                 return $this->errorResponse('السلة فارغة حالياً', 400);
@@ -75,35 +62,29 @@ class CheckoutController extends Controller
         } else {
             // For guest, hydrate items from request
             foreach ($request->items as $itemData) {
-                // Eager load offers
-                $product = Product::with('bundleOffers')->find($itemData['product_id']);
-                
-                // Create a temporary object mimicking a CartItem logic
+                $product = Product::find($itemData['product_id']);
+
                 $cartItem = new \stdClass();
                 $cartItem->product = $product;
                 $cartItem->product_id = $product->id;
                 $cartItem->quantity = $itemData['quantity'];
-                
-                // We don't set price_snapshot here, we calculate it below
-                
+
                 $cartItems->push($cartItem);
             }
         }
 
         // Calculate Subtotal using PriceCalculator (Source of Truth)
         $subtotal = 0;
-        $processedItems = collect(); // Store calculated items to avoid recalculation
+        $lines = collect();
 
         foreach ($cartItems as $item) {
             $calculation = $this->priceCalculator->calculate($item->product, $item->quantity);
-            
-            // Apply the calculated price
-            $item->price_snapshot = $calculation['final_unit_price']; 
-            // Also store total for this item
+
+            $item->price_snapshot = $calculation['final_unit_price'];
             $item->total_line_price = $calculation['total_price'];
-            
+
             $subtotal += $item->total_line_price;
-            $processedItems->push($item);
+            $lines->push($item);
         }
 
         // Apply Coupon with improved validation
@@ -112,17 +93,17 @@ class CheckoutController extends Controller
 
         if ($request->coupon_code) {
             $coupon = Coupon::where('code', $request->coupon_code)->first();
-            
+
             // Check if user has already used this coupon (Only for authenticated users)
             if ($user && $coupon && $coupon->hasBeenUsedByUser($user->id)) {
                 return $this->errorResponse('لقد قمت باستخدام هذا الكوبون من قبل', 422);
             }
-            
+
             // Check max uses limit
             if ($coupon && $coupon->max_uses && $coupon->times_used >= $coupon->max_uses) {
                 return $this->errorResponse('عذراً، وصل الكوبون للحد الأقصى من الاستخدام', 422);
             }
-            
+
             if ($coupon && $coupon->isValid($subtotal)) {
                 $discountAmount = $coupon->calculateDiscount($subtotal);
             } else {
@@ -130,119 +111,49 @@ class CheckoutController extends Controller
             }
         }
 
-        // Apply Offer discount (cannot be combined with coupon)
-        $offerDiscount  = 0;
-        $offer          = null;
-        $offerFreeItems = [];
+        $shippingCost = $this->priceCalculator->shippingCost($lines);
+        $totalAmount = max(0, $subtotal - $discountAmount) + $shippingCost;
 
-        if ($request->offer_id && !$coupon) {
-            $offer = Offer::active()->with('products')->find($request->offer_id);
-
-            if (!$offer) {
-                return $this->errorResponse('العرض غير متاح أو انتهت صلاحيته', 422);
-            }
-
-            $result        = $offer->calculateDiscount($processedItems, $subtotal);
-            $offerDiscount = $result['discount'];
-            $offerFreeItems = $result['free_items']; // for buy_x_get_y with different product
+        if ($this->totalChanged($request, $totalAmount)) {
+            return $this->errorResponse('تغيّرت الأسعار، راجع الإجمالي الجديد قبل إتمام الطلب', 409, [
+                'subtotal' => Money::toPounds($subtotal),
+                'discount_amount' => Money::toPounds($discountAmount),
+                'shipping_cost' => Money::toPounds($shippingCost),
+                'total_amount' => Money::toPounds($totalAmount),
+            ]);
         }
-
-        $shippingCost = $processedItems->sum(function ($item) {
-            return ($item->product->shipping_cost ?? 0) * $item->quantity;
-        });
-
-        // If no shipping cost is defined on products, fallback to a default or zero
-        if ($shippingCost == 0) {
-            $shippingCost = 3000; // Default 30 EGP (in piasters) if no product has shipping cost
-        }
-
-        // Total discount = coupon discount + offer discount
-        $totalDiscount = $discountAmount + $offerDiscount;
-        $totalAmount   = max(0, $subtotal - $totalDiscount) + $shippingCost;
 
         try {
-            DB::beginTransaction();
+            $order = $this->orderPlacer->place(
+                $this->customerAttributes($request, $user) + [
+                    'subtotal'        => $subtotal,
+                    'shipping_cost'   => $shippingCost,
+                    'discount_amount' => $discountAmount,
+                    'total_amount'    => $totalAmount,
+                    'coupon_code'     => $coupon?->code,
+                ],
+                $lines,
+                collect(),
+                function ($order) use ($coupon, $user, $cart) {
+                    if ($coupon) {
+                        $coupon->increment('times_used');
 
-            // Validate stock availability for all items before creating order
-            foreach ($processedItems as $item) {
-                if ($item->product->stock < $item->quantity) {
-                    DB::rollBack();
-                    return $this->errorResponse("المخزون غير كافٍ للمنتج: {$item->product->name}", 422, [
-                        'product' => $item->product->name,
-                        'available' => $item->product->stock,
-                        'requested' => $item->quantity,
-                    ]);
+                        // Record that this user has used this coupon if authenticated
+                        if ($user) {
+                            $coupon->users()->attach($user->id, ['order_id' => $order->id]);
+                        }
+                    }
+
+                    // Clear Cart if authenticated
+                    $cart?->items()->delete();
                 }
-            }
-
-            // Create Order with enum values
-            $order = Order::create([
-                'user_id'             => $user ? $user->id : null,
-                'full_name'           => $request->full_name,
-                'phone_number'        => $request->phone_number,
-                'phone_number_backup' => $request->phone_number_backup,
-                'city'                => $request->city,
-                'state'               => $request->state,
-                'address_line'        => $request->address_line,
-                'shipping_way'        => $request->shipping_way,
-                'status'              => OrderStatus::PENDING->value,
-                'payment_method'      => $request->payment_method,
-                'notes'               => $request->notes,
-                'subtotal'            => $subtotal,
-                'shipping_cost'       => $shippingCost,
-                'discount_amount'     => $discountAmount,
-                'total_amount'        => $totalAmount,
-                'coupon_code'         => $coupon ? $coupon->code : null,
-                'offer_id'            => $offer ? $offer->id : null,
-                'offer_discount'      => $offerDiscount,
-            ]);
-
-            // Create Order Items using calculated prices
-            foreach ($processedItems as $item) {
-                // $item->price_snapshot was updated in the calculation loop
-                
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price_snapshot, // This is now the discounted unit price
-                    'total' => $item->total_line_price,
-                ]);
-
-                // Decrement product stock
-                $item->product->decrement('stock', $item->quantity);
-            }
-
-            // Update Coupon Usage
-            if ($coupon) {
-                $coupon->increment('times_used');
-                
-                // Record that this user has used this coupon if authenticated
-                if ($user) {
-                    $coupon->users()->attach($user->id, ['order_id' => $order->id]);
-                }
-            }
-
-            // Clear Cart if authenticated
-            if ($user && isset($cart)) {
-                $cart->items()->delete();
-            }
-
-            DB::commit();
-
-            // Dispatch notification to admins
-            $admins = \App\Models\User::where('role', 'admin')->get();
-            if ($admins->count() > 0) {
-                \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\NewOrderNotification($order));
-            }
-
-            $this->metaService->sendPurchase($order);
-
-            return $this->successResponse(new \App\Http\Resources\OrderResource($order->load('items.product')), 'تم إتمام الطلب بنجاح', 201);
-
+            );
+        } catch (InsufficientStockException $e) {
+            return $this->insufficientStockResponse($e, 'المخزون غير كافٍ للمنتج: ');
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->errorResponse('حدث خطأ أثناء إتمام الطلب', 500, ['error' => $e->getMessage()]);
         }
+
+        return $this->orderCreatedResponse($order, replayed: $order->wasRecentlyCreated === false);
     }
 }

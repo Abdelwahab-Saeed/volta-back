@@ -42,10 +42,10 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        @if($order->offer_id)
+                        @if($order->offer_snapshot || $order->offer_id)
                             <div class="flex flex-col items-center gap-1">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{{ $order->offer->name_ar ?? 'عرض' }}</span>
-                                <span class="text-xs text-green-600 font-bold">-{{ number_format($order->offer_discount, 2) }} ج.م</span>
+                                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{{ $order->offer_snapshot['name_ar'] ?? $order->offer?->name_ar ?? 'عرض' }}</span>
+                                <span class="text-xs text-green-600 font-bold">-{{ \App\Support\Money::format($order->offer_discount) }} ج.م</span>
                             </div>
                         @else
                             <span class="text-xs text-gray-400">—</span>

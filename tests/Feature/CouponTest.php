@@ -26,7 +26,7 @@ class CouponTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-                 ->assertJson(['discount_amount' => 10]);
+                 ->assertJson(['data' => ['discount_amount' => 10]]);
     }
 
     public function test_cannot_validate_expired_coupon()
