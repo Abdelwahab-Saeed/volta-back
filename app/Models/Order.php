@@ -31,10 +31,14 @@ class Order extends Model
         'coupon_code',
         'offer_id',
         'offer_discount',
+        'offer_snapshot',
+        'idempotency_key',
     ];
 
     // Pre-piasters backup columns, removed by the drop_legacy_money_columns migration.
-    protected $hidden = ['subtotal_legacy', 'shipping_cost_legacy', 'discount_amount_legacy', 'total_amount_legacy'];
+    protected $hidden = ['subtotal_legacy', 'shipping_cost_legacy', 'discount_amount_legacy', 'total_amount_legacy',
+        // Internal: the snapshot holds piasters, and the key is the client's retry token. OrderResource exposes what the frontend needs.
+        'offer_snapshot', 'idempotency_key'];
 
     protected $casts = [
         'subtotal'        => MoneyCast::class,
@@ -42,6 +46,7 @@ class Order extends Model
         'discount_amount' => MoneyCast::class,
         'total_amount'    => MoneyCast::class,
         'offer_discount'  => MoneyCast::class,
+        'offer_snapshot'  => 'array',
     ];
 
     public function user()

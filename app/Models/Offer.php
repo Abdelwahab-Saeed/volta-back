@@ -2,15 +2,26 @@
 
 namespace App\Models;
 
+use App\Casts\MoneyCast;
+use App\Support\Money;
 use App\Traits\HasTranslations;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
+/**
+ * An offer is a package the customer buys directly from the offer page (never through the cart):
+ *   - bundle:      fixed price for one "set" = each linked product × its pivot quantity
+ *   - buy_x_get_y: buy X units of a linked product, get Y more at get_discount_percent off (100 = free),
+ *                  or get Y units of a different gift product (get_product_id), always free
+ * Cart-wide discounts are coupons.
+ */
 class Offer extends Model
 {
     use HasFactory, HasTranslations, SoftDeletes;
+
+    public const TYPES = ['bundle', 'buy_x_get_y'];
 
     protected array $translatable = ['name', 'description'];
 
@@ -21,26 +32,27 @@ class Offer extends Model
         'description_en',
         'image',
         'type',
-        'value',
         'buy_quantity',
         'get_quantity',
+        'get_discount_percent',
         'get_product_id',
-        'min_spend',
-        'discount_amount',
         'bundle_price',
         'starts_at',
         'expires_at',
         'is_active',
     ];
 
+    protected $hidden = ['legacy_bundle_offer_id'];
+
+    // Money is integer piasters (see MoneyCast).
     protected $casts = [
-        'value'           => 'decimal:2',
-        'min_spend'       => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'bundle_price'    => 'decimal:2',
-        'is_active'       => 'boolean',
-        'starts_at'       => 'datetime',
-        'expires_at'      => 'datetime',
+        'bundle_price'         => MoneyCast::class,
+        'buy_quantity'         => 'integer',
+        'get_quantity'         => 'integer',
+        'get_discount_percent' => 'integer',
+        'is_active'            => 'boolean',
+        'starts_at'            => 'datetime',
+        'expires_at'           => 'datetime',
     ];
 
     // ──────────────────────────────────────────
@@ -49,7 +61,7 @@ class Offer extends Model
 
     public function products()
     {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class)->withPivot('quantity');
     }
 
     public function freeProduct()
@@ -90,95 +102,129 @@ class Offer extends Model
     }
 
     /**
-     * Calculate how much discount this offer applies to the given cart items.
-     *
-     * @param  \Illuminate\Support\Collection  $items   Each item must have: product, quantity, total_line_price
-     * @param  float                           $subtotal
-     * @return array ['discount' => float, 'free_items' => array]
+     * Convert admin form input (pounds) to stored units.
      */
-    public function calculateDiscount($items, float $subtotal): array
+    public static function fromInput(array $data): array
     {
-        $offerProductIds = $this->products->pluck('id')->toArray();
-        $freeItems = [];
+        return Money::fromPoundsFields($data, ['bundle_price']);
+    }
 
-        switch ($this->type) {
+    /**
+     * Calculate the discount this offer gives on the given lines.
+     * All amounts are integer piasters.
+     *
+     * @param  Collection  $items     Each item must have: product_id, quantity, total_line_price (piasters)
+     * @param  int         $subtotal  Lines subtotal in piasters
+     * @return array{discount: int, free_items: array<int, array{product_id: int, quantity: int}>}
+     */
+    public function calculateDiscount(Collection $items, int $subtotal): array
+    {
+        $result = match ($this->type) {
+            'bundle'      => ['discount' => $this->bundleDiscount($items), 'free_items' => []],
+            'buy_x_get_y' => $this->buyXGetY($this->qualifyingLines($items)),
+            default       => ['discount' => 0, 'free_items' => []],
+        };
 
-            // ── 1. Percentage off each qualifying product ──────────────────
-            case 'percentage':
-                $discount = 0;
-                foreach ($items as $item) {
-                    if (empty($offerProductIds) || in_array($item->product_id, $offerProductIds)) {
-                        $discount += ($item->total_line_price * ($this->value / 100));
-                    }
-                }
-                return ['discount' => round($discount, 2), 'free_items' => []];
+        // An offer can never discount more than the lines are worth.
+        $result['discount'] = min($result['discount'], $subtotal);
 
-            // ── 2. Fixed amount off each qualifying product ────────────────
-            case 'fixed':
-                $discount = 0;
-                foreach ($items as $item) {
-                    if (empty($offerProductIds) || in_array($item->product_id, $offerProductIds)) {
-                        $discount += min($this->value * $item->quantity, $item->total_line_price);
-                    }
-                }
-                return ['discount' => round($discount, 2), 'free_items' => []];
+        return $result;
+    }
 
-            // ── 3. Bundle — fixed total price for ALL listed products ──────
-            case 'bundle':
-                // All bundle products must be in the cart
-                $bundleProductIds = $offerProductIds;
-                $cartProductIds   = $items->pluck('product_id')->toArray();
-                $allPresent       = count(array_intersect($bundleProductIds, $cartProductIds)) === count($bundleProductIds);
+    /**
+     * What the offer looked like when it was bought (piasters), stored on the order.
+     */
+    public function snapshot(int $sets, ?int $productId): array
+    {
+        return [
+            'id'                   => $this->id,
+            'name_ar'              => $this->name_ar,
+            'name_en'              => $this->name_en,
+            'type'                 => $this->type,
+            'bundle_price'         => $this->bundle_price,
+            'buy_quantity'         => $this->buy_quantity,
+            'get_quantity'         => $this->get_quantity,
+            'get_discount_percent' => $this->get_discount_percent,
+            'get_product_id'       => $this->get_product_id,
+            'products'             => $this->products->map(fn (Product $p) => [
+                'id' => $p->id, 'name_ar' => $p->name_ar, 'quantity' => (int) $p->pivot->quantity,
+            ])->values()->all(),
+            'sets'                 => $sets,
+            'product_id'           => $productId,
+        ];
+    }
 
-                if ($allPresent && $this->bundle_price !== null) {
-                    // Sum of prices for the bundle products in cart
-                    $bundleSubtotal = 0;
-                    foreach ($items as $item) {
-                        if (in_array($item->product_id, $bundleProductIds)) {
-                            $bundleSubtotal += $item->total_line_price;
-                        }
-                    }
-                    $discount = max(0, $bundleSubtotal - $this->bundle_price);
-                    return ['discount' => round($discount, 2), 'free_items' => []];
-                }
-                return ['discount' => 0, 'free_items' => []];
+    /**
+     * Lines grouped per product.
+     *
+     * @return Collection<int, array{quantity: int, total: int}> keyed by product_id
+     */
+    private function lines(Collection $items): Collection
+    {
+        return $items->groupBy('product_id')->map(fn (Collection $group) => [
+            'quantity' => (int) $group->sum('quantity'),
+            'total'    => (int) $group->sum('total_line_price'),
+        ]);
+    }
 
-            // ── 4. Buy X get Y free ────────────────────────────────────────
-            case 'buy_x_get_y':
-                $discount = 0;
-                foreach ($items as $item) {
-                    if (empty($offerProductIds) || in_array($item->product_id, $offerProductIds)) {
-                        if ($item->quantity >= $this->buy_quantity) {
-                            $freeSets      = intdiv($item->quantity, $this->buy_quantity);
-                            $freeQty       = $freeSets * $this->get_quantity;
+    private function qualifyingLines(Collection $items): Collection
+    {
+        return $this->lines($items)->only($this->products->pluck('id')->all());
+    }
 
-                            // Determine which product is free
-                            if ($this->get_product_id) {
-                                // Free product is a different product — we add it as a free item
-                                $freeItems[] = [
-                                    'product_id' => $this->get_product_id,
-                                    'quantity'   => $freeQty,
-                                ];
-                            } else {
-                                // Free units of the same product → discount = freeQty * unit_price
-                                $unitPrice = $item->total_line_price / $item->quantity;
-                                $discount += $freeQty * $unitPrice;
-                            }
-                        }
-                    }
-                }
-                return ['discount' => round($discount, 2), 'free_items' => $freeItems];
-
-            // ── 5. Spend X get Y amount off ───────────────────────────────
-            case 'spend_x_get_y':
-                if ($subtotal >= $this->min_spend) {
-                    return ['discount' => round((float) $this->discount_amount, 2), 'free_items' => []];
-                }
-                return ['discount' => 0, 'free_items' => []];
-
-            default:
-                return ['discount' => 0, 'free_items' => []];
+    // ── Bundle: fixed price per complete set (each product × its quantity) ──
+    private function bundleDiscount(Collection $items): int
+    {
+        $bundle = $this->products->mapWithKeys(fn (Product $p) => [$p->id => max(1, (int) $p->pivot->quantity)]);
+        if ($bundle->isEmpty() || $this->bundle_price === null) {
+            return 0;
         }
+
+        $lines = $this->lines($items);
+        if ($bundle->keys()->contains(fn ($id) => !$lines->has($id))) {
+            return 0; // not every bundle product is there
+        }
+
+        $sets = $bundle->map(fn ($perSet, $id) => intdiv($lines[$id]['quantity'], $perSet))->min();
+        if ($sets < 1) {
+            return 0;
+        }
+
+        // What those sets cost without the offer (units beyond full sets stay at normal price).
+        $regular = $bundle->map(fn ($perSet, $id) => (int) round($lines[$id]['total'] * $sets * $perSet / $lines[$id]['quantity']))->sum();
+
+        return max(0, $regular - $sets * $this->bundle_price);
+    }
+
+    // ── Buy X get Y (at a percentage off, or a different free gift product) ──
+    private function buyXGetY(Collection $lines): array
+    {
+        $buy = (int) $this->buy_quantity;
+        $get = (int) $this->get_quantity;
+        if ($buy < 1 || $get < 1) {
+            return ['discount' => 0, 'free_items' => []];
+        }
+
+        // Gift is a different product: every X units bought earn Y gift units, added to the order as a free line.
+        if ($this->get_product_id) {
+            $freeQty = intdiv($lines->sum('quantity'), $buy) * $get;
+
+            return [
+                'discount'   => 0,
+                'free_items' => $freeQty > 0 ? [['product_id' => (int) $this->get_product_id, 'quantity' => $freeQty]] : [],
+            ];
+        }
+
+        // Same product: each group is X paid + Y discounted units, e.g. buy 2 get 1 → every 3 units, 1 is discounted.
+        $percent = $this->get_discount_percent ?? 100;
+        $discount = $lines->sum(function (array $line) use ($buy, $get, $percent) {
+            $discountedUnits = intdiv($line['quantity'], $buy + $get) * $get;
+            $unitsValue = (int) round($line['total'] * $discountedUnits / $line['quantity']);
+
+            return (int) round($unitsValue * $percent / 100);
+        });
+
+        return ['discount' => $discount, 'free_items' => []];
     }
 
     /**
@@ -186,13 +232,15 @@ class Offer extends Model
      */
     public function getTypeLabel(): string
     {
-        return match ($this->type) {
-            'percentage'    => 'خصم نسبة مئوية',
-            'fixed'         => 'خصم ثابت',
-            'bundle'        => 'باقة منتجات',
-            'buy_x_get_y'   => 'اشترِ X واحصل على Y مجاناً',
-            'spend_x_get_y' => 'اشترِ بـ X واحصل على خصم Y',
-            default         => $this->type,
+        return self::typeLabel($this->type);
+    }
+
+    public static function typeLabel(?string $type): string
+    {
+        return match ($type) {
+            'bundle'      => 'باقة بسعر ثابت',
+            'buy_x_get_y' => 'اشترِ X واحصل على Y',
+            default       => (string) $type,
         };
     }
 }

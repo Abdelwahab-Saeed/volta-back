@@ -40,16 +40,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('users', UserController::class);
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
     Route::resource('coupons', CouponController::class);
-    Route::resource('offers', App\Http\Controllers\Admin\OfferController::class);
+    Route::resource('offers', App\Http\Controllers\Admin\OfferController::class)->except(['show']);
     Route::resource('banners', BannerController::class);
     Route::resource('posts', AdminPostController::class);
-    
-    // Bundle Offers
-    Route::get('products/{product}/offers', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'index'])->name('products.offers.index');
-    Route::post('products/{product}/offers', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'store'])->name('products.offers.store');
-    Route::get('products/{product}/offers/{offer}/edit', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'edit'])->name('products.offers.edit');
-    Route::put('products/{product}/offers/{offer}', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'update'])->name('products.offers.update');
-    Route::delete('products/{product}/offers/{offer}', [App\Http\Controllers\Admin\ProductBundleOfferController::class, 'destroy'])->name('products.offers.destroy');
 
     // Product Features
     Route::get('products/{product}/features', [ProductFeatureController::class, 'index'])->name('products.features.index');

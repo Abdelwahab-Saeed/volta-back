@@ -93,9 +93,9 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function bundleOffers()
+    public function offers()
     {
-        return $this->hasMany(ProductBundleOffer::class)->orderBy('quantity', 'asc');
+        return $this->belongsToMany(Offer::class)->withPivot('quantity');
     }
 
     public function features()

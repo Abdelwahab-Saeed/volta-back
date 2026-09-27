@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Support\Money;
-use App\Casts\CouponValueCast;
+use App\Casts\FixedOrPercentCast;
 use App\Casts\MoneyCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,7 +30,7 @@ class Coupon extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
-        'value' => CouponValueCast::class, // piasters for fixed, whole percent for percent
+        'value' => FixedOrPercentCast::class, // piasters for fixed, whole percent for percent
         'min_order_amount' => MoneyCast::class,
     ];
 

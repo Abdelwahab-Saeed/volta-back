@@ -83,11 +83,7 @@ class OrderSeeder extends Seeder
         }
 
         return $available->random(min(random_int(1, 3), $available->count()))->map(function (Product $product) {
-            $bundleQuantities = $product->bundleOffers()->where('is_active', true)->pluck('quantity');
-
-            $quantity = $bundleQuantities->isNotEmpty() && fake()->boolean(35)
-                ? $bundleQuantities->random()
-                : random_int(1, 2);
+            $quantity = random_int(1, 2);
 
             if ($quantity > $product->stock) {
                 $quantity = 1;

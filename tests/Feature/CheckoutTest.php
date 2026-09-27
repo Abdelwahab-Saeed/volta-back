@@ -31,7 +31,13 @@ class CheckoutTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->postJson('/api/checkout', [
-            'address_id' => $address->id,
+            // The API takes the delivery details directly (it used to take an address_id)
+            'full_name' => $address->recipient_name,
+            'phone_number' => $address->phone_number,
+            'city' => $address->city,
+            'state' => $address->state,
+            'address_line' => $address->address_line_1,
+            'shipping_way' => 'home',
             'payment_method' => 'cash',
             'notes' => 'Leave at door',
         ]);
@@ -68,7 +74,13 @@ class CheckoutTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->postJson('/api/checkout', [
-            'address_id' => $address->id,
+            // The API takes the delivery details directly (it used to take an address_id)
+            'full_name' => $address->recipient_name,
+            'phone_number' => $address->phone_number,
+            'city' => $address->city,
+            'state' => $address->state,
+            'address_line' => $address->address_line_1,
+            'shipping_way' => 'home',
             'coupon_code' => 'SAVE10',
             'payment_method' => 'card',
         ]);

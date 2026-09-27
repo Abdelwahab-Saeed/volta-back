@@ -67,7 +67,7 @@ class CartTest extends TestCase
         $response = $this->actingAs($user)->getJson('/api/cart');
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['id', 'user_id', 'items']);
+                 ->assertJsonStructure(['data' => ['id', 'user_id', 'items']]);
     }
 
     public function test_user_can_update_item_quantity()

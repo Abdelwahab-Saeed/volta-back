@@ -46,9 +46,7 @@ class ProductController extends Controller
         $limit = $request->get('limit', 10);
 
         $products = $query
-            ->with(['features', 'extraImages', 'bundleOffers' => function ($query) {
-                $query->where('is_active', true);
-            }])
+            ->with(['features', 'extraImages'])
             ->orderBy('price', $sort)
             ->paginate($limit);
 
@@ -73,9 +71,7 @@ class ProductController extends Controller
     // SHOW
     public function show(Product $product)
     {
-        $product->load(['category', 'features', 'extraImages', 'bundleOffers' => function ($query) {
-            $query->where('is_active', true);
-        }]);
+        $product->load(['category', 'features', 'extraImages']);
 
         $this->metaService->sendViewContent($product);
 

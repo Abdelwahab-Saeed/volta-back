@@ -35,11 +35,6 @@ class ProductResource extends JsonResource
             'category' => new CategoryResource($this->whenLoaded('category')),
             'features' => ProductFeatureResource::collection($this->whenLoaded('features')),
             'extra_images' => ProductImageResource::collection($this->whenLoaded('extraImages')),
-            'bundle_offers' => $this->whenLoaded('bundleOffers', function() {
-                // If bundle offers need translation later, we'd make a resource for them too.
-                // For now, they are just numbers.
-                return $this->bundleOffers;
-            }),
             'wishlisted' => $this->when(auth('sanctum')->check(), function() {
                  return $this->wishlistedBy()->where('user_id', auth('sanctum')->id())->exists();
             }, false),
