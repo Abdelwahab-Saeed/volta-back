@@ -37,6 +37,11 @@ Route::get('/offers/all', [App\Http\Controllers\Api\OfferController::class, 'all
 Route::get('/offers/{id}', [App\Http\Controllers\Api\OfferController::class, 'show']);
 Route::get('/offers/{id}/quote', [App\Http\Controllers\Api\OfferController::class, 'quote']);
 
+// COMPANY PROFILE (home page: partners & clients, certificates, team)
+Route::get('/partners', [App\Http\Controllers\Api\CompanyProfileController::class, 'partners']);
+Route::get('/certificates', [App\Http\Controllers\Api\CompanyProfileController::class, 'certificates']);
+Route::get('/team', [App\Http\Controllers\Api\CompanyProfileController::class, 'team']);
+
 // POSTS (BLOG)
 Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
 Route::get('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'show']);

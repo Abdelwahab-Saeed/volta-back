@@ -26,6 +26,7 @@ class MockDataSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
             BannerSeeder::class,
+            CompanyProfileSeeder::class,
             PostSeeder::class,
             CouponSeeder::class,
             AddressSeeder::class,
