@@ -59,6 +59,14 @@ class Money
     }
 
     /**
+     * Pounds for sentences: no decimals when whole ("250", "1,250"), otherwise two ("249.50").
+     */
+    public static function formatCompact(int $piasters): string
+    {
+        return number_format($piasters / 100, $piasters % 100 === 0 ? 0 : 2);
+    }
+
+    /**
      * Human readable pounds for views ("1,250.00"). Accepts SQL aggregate results (string/float) too.
      */
     public static function format(int|float|string|null $piasters): string
