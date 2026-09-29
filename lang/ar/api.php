@@ -25,4 +25,7 @@ return [
     'post_created' => 'تم إنشاء المقال بنجاح',
     'post_updated' => 'تم تحديث المقال بنجاح',
     'post_deleted' => 'تم حذف المقال بنجاح',
+    'partners_fetched' => 'تم جلب الشركاء والعملاء بنجاح',
+    'certificates_fetched' => 'تم جلب الشهادات بنجاح',
+    'team_fetched' => 'تم جلب فريق العمل بنجاح',
 ];

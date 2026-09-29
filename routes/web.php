@@ -44,6 +44,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('banners', BannerController::class);
     Route::resource('posts', AdminPostController::class);
 
+    // Home page company content
+    Route::resource('partners', App\Http\Controllers\Admin\PartnerController::class)->except(['show']);
+    Route::resource('certificates', App\Http\Controllers\Admin\CertificateController::class)->except(['show']);
+    Route::resource('team-members', App\Http\Controllers\Admin\TeamMemberController::class)->except(['show']);
+
     // Product Features
     Route::get('products/{product}/features', [ProductFeatureController::class, 'index'])->name('products.features.index');
     Route::post('products/{product}/features', [ProductFeatureController::class, 'store'])->name('products.features.store');

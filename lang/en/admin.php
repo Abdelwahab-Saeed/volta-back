@@ -12,6 +12,12 @@ return [
     'description_en' => 'Description (English)',
     'location_ar' => 'Address (Arabic)',
     'location_en' => 'Address (English)',
+    'issuer_ar' => 'Issued by (Arabic)',
+    'issuer_en' => 'Issued by (English)',
+    'role_ar' => 'Job title (Arabic)',
+    'role_en' => 'Job title (English)',
+    'bio_ar' => 'Bio (Arabic)',
+    'bio_en' => 'Bio (English)',
     'save' => 'Save',
     'cancel' => 'Cancel',
 ];
