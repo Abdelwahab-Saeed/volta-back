@@ -228,19 +228,42 @@ class Offer extends Model
     }
 
     /**
-     * Human-readable label for display.
+     * What the offer gives, in the current locale, built from the offer's own numbers
+     * (so the text can never disagree with what checkout charges). Needs products (and freeProduct for gifts) loaded.
      */
-    public function getTypeLabel(): string
+    public function summary(): string
     {
-        return self::typeLabel($this->type);
+        if ($this->type === 'bundle') {
+            $items = $this->products
+                ->map(fn (Product $p) => __('offers.item', ['quantity' => (int) $p->pivot->quantity, 'name' => $p->name]))
+                ->implode(__('offers.separator'));
+
+            return __('offers.summary.bundle', ['items' => $items, 'price' => Money::formatCompact((int) $this->bundle_price)]);
+        }
+
+        if ($this->type === 'buy_x_get_y') {
+            $numbers = ['buy' => $this->buy_quantity, 'get' => $this->get_quantity];
+
+            if ($this->get_product_id) {
+                return __('offers.summary.buy_x_get_gift', $numbers + ['gift' => $this->freeProduct?->name ?? '']);
+            }
+
+            return (int) $this->get_discount_percent === 100
+                ? __('offers.summary.buy_x_get_y_free', $numbers)
+                : __('offers.summary.buy_x_get_y', $numbers + ['percent' => $this->get_discount_percent]);
+        }
+
+        return '';
     }
 
-    public static function typeLabel(?string $type): string
+    /**
+     * Type name in the current locale (API), or in a given one (the admin dashboard is Arabic-only).
+     */
+    public static function typeLabel(?string $type, ?string $locale = null): string
     {
-        return match ($type) {
-            'bundle'      => 'باقة بسعر ثابت',
-            'buy_x_get_y' => 'اشترِ X واحصل على Y',
-            default       => (string) $type,
-        };
+        $key = "offers.types.{$type}";
+        $label = __($key, [], $locale);
+
+        return $label === $key ? (string) $type : $label;
     }
 }

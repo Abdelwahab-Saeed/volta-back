@@ -74,6 +74,44 @@ class CartController extends Controller
         return $this->successResponse($cart->load('items.product'), __('api.cart_item_added'));
     }
 
+    /**
+     * Merge the cart a customer built as a guest (kept in the browser) into their account cart, right after login.
+     * A product in both carts keeps the larger quantity instead of adding them up, so a retried or repeated
+     * merge request never doubles quantities. Deleted or hidden products are skipped.
+     * url: POST api/cart/merge  { items: [{ product_id, quantity }] }
+     */
+    public function merge(Request $request)
+    {
+        $request->validate([
+            'items' => 'present|array|max:100',
+            'items.*.product_id' => 'required|integer',
+            'items.*.quantity' => 'required|integer|min:1|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $cart = $user->cart()->firstOrCreate(['user_id' => $user->id]);
+
+        // The same product can appear twice in a guest cart; take its largest quantity.
+        $wanted = collect($request->items)
+            ->groupBy('product_id')
+            ->map(fn ($lines) => (int) collect($lines)->max('quantity'));
+
+        $products = Product::where('status', true)->whereIn('id', $wanted->keys())->get()->keyBy('id');
+        $existing = $cart->items()->whereIn('product_id', $products->keys())->get()->keyBy('product_id');
+
+        foreach ($products as $productId => $product) {
+            $quantity = max($wanted[$productId], $existing[$productId]->quantity ?? 0);
+            $calculation = $this->priceCalculator->calculate($product, $quantity);
+
+            $cart->items()->updateOrCreate(
+                ['product_id' => $productId],
+                ['quantity' => $quantity, 'price_snapshot' => $calculation['final_unit_price']]
+            );
+        }
+
+        return $this->successResponse($cart->load('items.product'), __('api.cart_merged'));
+    }
+
     public function update(Request $request, $cartItemId)
     {
         $request->validate([

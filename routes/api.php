@@ -81,6 +81,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/cart', [App\Http\Controllers\Api\CartController::class, 'store']);
     Route::put('/cart/{cartItem}', [App\Http\Controllers\Api\CartController::class, 'update']);
     Route::post('/cart/clear', [App\Http\Controllers\Api\CartController::class, 'clear']);
+    // The guest cart (kept in the browser) joins the account cart right after login
+    Route::post('/cart/merge', [App\Http\Controllers\Api\CartController::class, 'merge']);
     Route::delete('/cart/{cartItem}', [App\Http\Controllers\Api\CartController::class, 'destroy']);
 
     // ADDRESSES

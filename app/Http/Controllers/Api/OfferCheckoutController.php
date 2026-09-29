@@ -46,7 +46,7 @@ class OfferCheckoutController extends Controller
 
         $offer = Offer::active()->find($request->offer_id);
         if (!$offer) {
-            return $this->errorResponse('العرض غير متاح أو انتهت صلاحيته', 422, ['code' => 'offer_unavailable']);
+            return $this->errorResponse(__('offers.unavailable'), 422, ['code' => 'offer_unavailable']);
         }
 
         $quote = $this->pricing->quote($offer, (int) $request->sets, $request->filled('product_id') ? (int) $request->product_id : null);
@@ -60,7 +60,7 @@ class OfferCheckoutController extends Controller
 
         // The offer or product prices changed after the customer saw the total: show the new quote instead of charging it.
         if ($this->totalChanged($request, $quote['total'])) {
-            return $this->errorResponse('تغيّر سعر العرض، راجع الإجمالي الجديد قبل إتمام الطلب', 409, [
+            return $this->errorResponse(__('offers.price_changed'), 409, [
                 'code' => 'price_changed',
                 'quote' => new OfferQuoteResource($quote),
             ]);

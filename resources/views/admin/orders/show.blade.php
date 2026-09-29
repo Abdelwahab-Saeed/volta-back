@@ -127,7 +127,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">نوع العرض</p>
-                    <p class="font-bold text-blue-600">{{ \App\Models\Offer::typeLabel($offerType) }}</p>
+                    <p class="font-bold text-blue-600">{{ \App\Models\Offer::typeLabel($offerType, 'ar') }}</p>
                 </div>
                 @if(!empty($snap))
                 <div>

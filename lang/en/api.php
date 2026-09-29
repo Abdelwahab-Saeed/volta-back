@@ -3,6 +3,9 @@
 return [
     'products_fetched' => 'Products fetched successfully',
     'product_fetched' => 'Product data fetched successfully',
+    'offers_fetched' => 'Offers fetched successfully',
+    'offer_fetched' => 'Offer details fetched successfully',
+    'offer_quoted' => 'Offer priced successfully',
     'best_selling_fetched' => 'Best selling products fetched successfully',
     'banners_fetched' => 'Banners fetched successfully',
     'categories_fetched' => 'Categories fetched successfully',
@@ -16,6 +19,7 @@ return [
     'cart_item_updated' => 'Product quantity updated successfully',
     'cart_item_removed' => 'Product removed from cart successfully',
     'cart_cleared' => 'Cart cleared successfully',
+    'cart_merged' => 'Your cart items were moved to your account',
     'posts_fetched' => 'Posts fetched successfully',
     'post_fetched' => 'Post data fetched successfully',
     'post_created' => 'Post created successfully',

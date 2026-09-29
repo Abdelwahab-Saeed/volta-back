@@ -3,6 +3,9 @@
 return [
     'products_fetched' => 'تم جلب المنتجات بنجاح',
     'product_fetched' => 'تم جلب بيانات المنتج بنجاح',
+    'offers_fetched' => 'تم جلب العروض بنجاح',
+    'offer_fetched' => 'تم جلب تفاصيل العرض بنجاح',
+    'offer_quoted' => 'تم حساب العرض بنجاح',
     'best_selling_fetched' => 'تم جلب المنتجات الأكثر مبيعاً بنجاح',
     'banners_fetched' => 'تم جلب البانرات بنجاح',
     'categories_fetched' => 'تم جلب الأقسام بنجاح',
@@ -16,6 +19,7 @@ return [
     'cart_item_updated' => 'تم تحديث كمية المنتج بنجاح',
     'cart_item_removed' => 'تم إزالة المنتج من السلة بنجاح',
     'cart_cleared' => 'تم تفريغ السلة بنجاح',
+    'cart_merged' => 'تم نقل منتجات سلتك إلى حسابك',
     'posts_fetched' => 'تم جلب المقالات بنجاح',
     'post_fetched' => 'تم جلب بيانات المقال بنجاح',
     'post_created' => 'تم إنشاء المقال بنجاح',

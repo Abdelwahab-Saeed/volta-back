@@ -40,9 +40,9 @@ class OfferTest extends TestCase
     }
 
     /** bundle: $products = [product_id => quantity per set]; amounts in piasters. */
-    private function bundle(int $pricePounds, array $products, array $extra = []): Offer
+    private function bundle(float $pricePounds, array $products, array $extra = []): Offer
     {
-        $offer = Offer::create(array_merge(['name_ar' => 'باقة', 'name_en' => 'Bundle', 'type' => 'bundle', 'bundle_price' => $pricePounds * 100, 'is_active' => true], $extra));
+        $offer = Offer::create(array_merge(['name_ar' => 'باقة', 'name_en' => 'Bundle', 'type' => 'bundle', 'bundle_price' => (int) round($pricePounds * 100), 'is_active' => true], $extra));
         $offer->products()->sync(collect($products)->map(fn ($q) => ['quantity' => $q])->all());
 
         return $offer;
@@ -425,17 +425,91 @@ class OfferTest extends TestCase
 
     // ── API shape ──────────────────────────────────────────────────────
 
-    public function test_offers_api_returns_pounds_and_bundle_quantities()
+    public function test_offer_api_sends_display_ready_texts_and_prices()
+    {
+        $p = $this->product(100, extra: ['name_ar' => 'شاحن', 'name_en' => 'Charger']);
+        $this->bundle(249.5, [$p->id => 3]);
+
+        $ar = $this->withHeaders(['Accept-Language' => 'ar'])->getJson('/api/offers/all')->assertOk()->json('data.0');
+        $this->assertSame('باقة بسعر ثابت', $ar['display']['type_label']);
+        $this->assertSame('3 × شاحن بسعر 249.50 ج.م', $ar['display']['summary']);
+        $this->assertEquals([300, 249.5, 50.5], [$ar['display']['regular_price'], $ar['display']['offer_price'], $ar['display']['savings']]);
+        $this->assertSame(['requires_product_choice' => false, 'max_sets' => 20, 'available' => true, 'unavailable_reason' => null], $ar['purchase']);
+        $this->assertSame(3, $ar['products'][0]['quantity']);
+        $this->assertEquals(100, $ar['products'][0]['price']);
+        $this->assertArrayNotHasKey('legacy_bundle_offer_id', $ar);
+
+        $en = $this->withHeaders(['Accept-Language' => 'en'])->getJson('/api/offers/all')->json('data.0');
+        $this->assertSame('3 × Charger for EGP 249.50', $en['display']['summary']);
+        $this->assertSame('Bundle deal', $en['display']['type_label']);
+    }
+
+    public function test_buy_x_summaries_follow_the_offer_numbers()
     {
         $p = $this->product(100);
-        $this->bundle(250, [$p->id => 3]);
+        $gift = $this->product(40, extra: ['name_ar' => 'جراب', 'name_en' => 'Case']);
+        $free = $this->buyXGetY(2, 1, [$p->id]);
+        $half = $this->buyXGetY(2, 1, [$p->id], ['get_discount_percent' => 50]);
+        $withGift = $this->buyXGetY(2, 1, [$p->id], ['get_product_id' => $gift->id]);
 
-        $offer = $this->getJson('/api/offers/all')->assertOk()->json('data.0');
+        $summary = fn (Offer $o) => $this->withHeaders(['Accept-Language' => 'ar'])->getJson("/api/offers/{$o->id}")->json('data.display.summary');
 
-        $this->assertSame('250.00', $offer['bundle_price']);
-        $this->assertSame('100.00', $offer['products'][0]['price']);
-        $this->assertSame(3, $offer['products'][0]['pivot']['quantity']);
-        $this->assertArrayNotHasKey('legacy_bundle_offer_id', $offer);
+        $this->assertSame('اشترِ 2 واحصل على 1 مجاناً', $summary($free));
+        $this->assertSame('اشترِ 2 واحصل على 1 بخصم 50%', $summary($half));
+        $this->assertSame('اشترِ 2 واحصل على 1 من جراب هدية', $summary($withGift));
+
+        // A gift's value counts as savings: pay 200 for 2, get a 40 gift.
+        $display = $this->getJson("/api/offers/{$withGift->id}")->json('data.display');
+        $this->assertEquals([240, 200, 40], [$display['regular_price'], $display['offer_price'], $display['savings']]);
+        $this->assertSame($gift->id, $this->getJson("/api/offers/{$withGift->id}")->json('data.gift.id'));
+    }
+
+    public function test_offer_with_several_products_prices_each_product()
+    {
+        $a = $this->product(100);
+        $b = $this->product(60, stock: 0);
+        $offer = $this->buyXGetY(2, 1, [$a->id, $b->id]);
+
+        $data = $this->getJson("/api/offers/{$offer->id}")->assertOk()->json('data');
+
+        $this->assertTrue($data['purchase']['requires_product_choice']);
+        $this->assertTrue($data['purchase']['available'], 'one product is still buyable');
+        $this->assertNull($data['display']['offer_price']);
+        $byId = collect($data['products'])->keyBy('id');
+        $this->assertEquals([300, 200], [$byId[$a->id]['offer']['regular_price'], $byId[$a->id]['offer']['offer_price']]);
+        $this->assertFalse($byId[$b->id]['offer']['available']);
+    }
+
+    public function test_unavailable_offer_explains_why_in_the_customers_language()
+    {
+        $p = $this->product(100, stock: 2, extra: ['name_en' => 'Charger']);
+        $offer = $this->bundle(250, [$p->id => 3]);
+
+        $purchase = $this->withHeaders(['Accept-Language' => 'en'])->getJson("/api/offers/{$offer->id}")->json('data.purchase');
+
+        $this->assertFalse($purchase['available']);
+        $this->assertSame('The requested quantity of Charger is not in stock', $purchase['unavailable_reason']);
+
+        $offer->update(['is_active' => false]);
+        $this->getJson("/api/offers/{$offer->id}")->assertStatus(404)->assertJsonPath('errors.code', 'offer_unavailable');
+    }
+
+    public function test_offers_list_is_paginated()
+    {
+        $p = $this->product(100);
+        $this->travelTo(now()); // all 13 share one created_at, like offers migrated in one run
+        foreach (range(1, 13) as $i) {
+            $this->bundle(150, [$p->id => 2]);
+        }
+
+        $first = $this->getJson('/api/offers?page=1')->assertOk()->json('data');
+        $page = $this->getJson('/api/offers?page=2')->assertOk()->json('data');
+
+        $this->assertCount(1, $page['data']);
+        $this->assertSame([2, 2, 13], [$page['current_page'], $page['last_page'], $page['total']]);
+        $ids = collect($first['data'])->concat($page['data'])->pluck('id');
+        $this->assertSame(13, $ids->unique()->count(), 'no offer repeated or skipped across pages');
+        $this->assertSame($ids->sortDesc()->values()->all(), $ids->all(), 'newest (highest id) first on ties');
     }
 
     public function test_product_api_no_longer_has_bundle_offers()

@@ -35,7 +35,7 @@ class OfferPricing
     public function quote(Offer $offer, int $sets, ?int $productId = null): array
     {
         if ($sets < 1 || $sets > self::MAX_SETS) {
-            throw ValidationException::withMessages(['sets' => 'عدد مرات العرض يجب أن يكون بين 1 و ' . self::MAX_SETS . '.']);
+            throw ValidationException::withMessages(['sets' => __('offers.sets_range', ['max' => self::MAX_SETS])]);
         }
 
         // Deleted products are loaded too, so a bundle never silently loses one of its products.
@@ -59,7 +59,7 @@ class OfferPricing
 
         foreach ($lines as $line) {
             if (!$this->isSellable($line->product)) {
-                $issues[] = ['code' => 'product_unavailable', 'message' => "المنتج {$line->product->name} غير متاح حالياً"];
+                $issues[] = ['code' => 'product_unavailable', 'message' => __('offers.issues.product_unavailable', ['name' => $line->product->name])];
             }
         }
 
@@ -69,7 +69,7 @@ class OfferPricing
         $gifts = collect($result['free_items'])->map(function (array $free) use (&$issues) {
             $gift = Product::withTrashed()->find($free['product_id']);
             if (!$gift || !$this->isSellable($gift)) {
-                $issues[] = ['code' => 'gift_unavailable', 'message' => 'منتج الهدية الخاص بالعرض غير متاح حالياً'];
+                $issues[] = ['code' => 'gift_unavailable', 'message' => __('offers.issues.gift_unavailable')];
             }
 
             return (object) ['product' => $gift, 'product_id' => $free['product_id'], 'quantity' => $free['quantity']];
@@ -77,11 +77,11 @@ class OfferPricing
 
         // A bundle can end up no cheaper than buying the products separately if their prices dropped after it was set.
         if ($result['discount'] <= 0 && $gifts->isEmpty()) {
-            $issues[] = ['code' => 'no_saving', 'message' => 'العرض غير متاح حالياً'];
+            $issues[] = ['code' => 'no_saving', 'message' => __('offers.issues.no_saving')];
         }
 
         foreach ($this->stockShortages($lines, $gifts) as $product) {
-            $issues[] = ['code' => 'out_of_stock', 'message' => "الكمية المطلوبة من {$product->name} غير متوفرة حالياً"];
+            $issues[] = ['code' => 'out_of_stock', 'message' => __('offers.issues.out_of_stock', ['name' => $product->name])];
         }
 
         $shipping = $this->prices->shippingCost($lines);
@@ -122,7 +122,7 @@ class OfferPricing
 
         $product = $productId ? $offerProducts->firstWhere('id', $productId) : null;
         if (!$product) {
-            throw ValidationException::withMessages(['product_id' => 'اختر منتجاً من منتجات هذا العرض.']);
+            throw ValidationException::withMessages(['product_id' => __('offers.choose_product')]);
         }
 
         return $product;
