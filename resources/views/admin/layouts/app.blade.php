@@ -64,7 +64,9 @@
         <div id="sidebar-overlay" class="fixed inset-0 bg-navy-950/60 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
 
         {{-- Sidebar --}}
-        <aside id="sidebar" class="fixed inset-y-0 right-0 z-40 w-72 lg:w-64 xl:w-72 bg-navy-900 text-slate-300 flex flex-col transform translate-x-full lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen transition-transform duration-300 ease-out shrink-0">
+        {{-- The navy column stretches the full page height on desktop; its content sticks to the viewport while scrolling --}}
+        <aside id="sidebar" class="fixed inset-y-0 right-0 z-40 w-72 lg:w-64 xl:w-72 bg-navy-900 text-slate-300 transform translate-x-full lg:translate-x-0 lg:static lg:inset-auto lg:z-auto transition-transform duration-300 ease-out shrink-0">
+          <div class="h-full lg:h-screen lg:sticky lg:top-0 flex flex-col">
             <div class="relative flex items-center justify-between h-16 px-5 border-b border-white/5">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5">
                     <img src="{{ asset('images/admin-logo-white.png') }}" alt="Volta" class="h-6 w-auto">
@@ -118,6 +120,7 @@
                     تسجيل الخروج
                 </button>
             </div>
+          </div>
         </aside>
 
         {{-- Main --}}
