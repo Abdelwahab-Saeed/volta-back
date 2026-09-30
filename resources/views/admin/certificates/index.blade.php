@@ -1,68 +1,49 @@
 @extends('admin.layouts.app')
 
 @section('title', 'الشهادات')
+@section('subtitle', 'تظهر في قسم "شهاداتنا" بالصفحة الرئيسية، ويمكن للزائر فتح الصورة بالحجم الكامل.')
 
-@section('content')
-<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 text-right">
-    <div>
-        <h1 class="text-2xl font-black text-gray-900">الشهادات والاعتمادات</h1>
-        <p class="text-gray-500 font-medium">تظهر في قسم "شهاداتنا" بالصفحة الرئيسية، ويمكن للزائر فتح الصورة بالحجم الكامل.</p>
-    </div>
-    <a href="{{ route('admin.certificates.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all font-bold flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+@section('actions')
+    <a href="{{ route('admin.certificates.create') }}" class="btn-primary">
+        <x-admin.icon name="plus" class="w-4 h-4" />
         إضافة شهادة
     </a>
-</div>
+@endsection
 
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-right whitespace-nowrap">
-            <thead class="bg-gray-50/50 text-gray-500 text-xs font-bold border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4">الصورة</th>
-                    <th class="px-6 py-4">الشهادة</th>
-                    <th class="px-6 py-4 text-center">السنة</th>
-                    <th class="px-6 py-4 text-center">الترتيب</th>
-                    <th class="px-6 py-4 text-center">الحالة</th>
-                    <th class="px-6 py-4 text-left">العمليات</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($certificates as $certificate)
-                <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="px-6 py-4">
-                        <img src="{{ asset('storage/' . $certificate->image) }}" alt="" class="w-16 h-20 rounded-lg object-cover border border-gray-100">
-                    </td>
-                    <td class="px-6 py-4">
-                        <p class="font-black text-gray-900 text-sm">{{ $certificate->title_ar ?: $certificate->title_en }}</p>
-                        <p class="text-xs text-gray-400">{{ $certificate->issuer_ar ?: $certificate->issuer_en }}</p>
-                    </td>
-                    <td class="px-6 py-4 text-center text-gray-500 text-sm">{{ $certificate->issued_year ?? '—' }}</td>
-                    <td class="px-6 py-4 text-center text-gray-500 text-sm">{{ $certificate->sort_order }}</td>
-                    <td class="px-6 py-4 text-center">@include('admin.partials.status-badge', ['active' => $certificate->is_active])</td>
-                    <td class="px-6 py-4">
-                        @include('admin.partials.row-actions', [
-                            'edit' => route('admin.certificates.edit', $certificate),
-                            'destroy' => route('admin.certificates.destroy', $certificate),
-                            'id' => 'delete-certificate-' . $certificate->id,
-                            'confirm' => 'هل أنت متأكد من حذف هذه الشهادة؟',
-                        ])
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                        <p class="text-lg font-black mb-2">لا توجد شهادات بعد</p>
-                        <p class="text-sm mb-3">القسم لا يظهر في الموقع حتى تضيف شهادة واحدة على الأقل.</p>
-                        <a href="{{ route('admin.certificates.create') }}" class="text-blue-600 hover:text-blue-700 font-bold underline">أضف أول شهادة الآن</a>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+@section('content')
+@if($certificates->isEmpty())
+    <div class="card">
+        <x-admin.empty-state icon="badge" title="لا توجد شهادات بعد" text="القسم لا يظهر في الموقع حتى تضيف شهادة واحدة على الأقل." :action="route('admin.certificates.create')" action-label="أضف أول شهادة" />
+    </div>
+@else
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @foreach($certificates as $certificate)
+            <article class="card overflow-hidden flex flex-col">
+                <div class="relative aspect-[4/3] bg-gradient-to-b from-slate-50 to-slate-100 p-4 flex items-center justify-center">
+                    <img src="{{ asset('storage/' . $certificate->image) }}" alt="" class="max-h-full max-w-full object-contain drop-shadow {{ $certificate->is_active ? '' : 'grayscale opacity-60' }}">
+                    <span class="absolute top-3 right-3">@include('admin.partials.status-badge', ['active' => $certificate->is_active])</span>
+                    @if($certificate->issued_year)
+                        <span class="absolute bottom-3 right-3 rounded-full bg-navy-900 px-2.5 py-0.5 text-xs font-bold text-white">{{ $certificate->issued_year }}</span>
+                    @endif
+                </div>
+                <div class="flex items-start gap-2 p-4 flex-1">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-navy-900 line-clamp-2">{{ $certificate->title_ar ?: $certificate->title_en }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5 truncate">{{ $certificate->issuer_ar ?: $certificate->issuer_en }}</p>
+                        <p class="text-[11px] text-slate-400 mt-1">الترتيب: {{ $certificate->sort_order }}</p>
+                    </div>
+                    @include('admin.partials.row-actions', [
+                        'edit' => route('admin.certificates.edit', $certificate),
+                        'destroy' => route('admin.certificates.destroy', $certificate),
+                        'id' => 'delete-certificate-' . $certificate->id,
+                        'confirm' => 'هل أنت متأكد من حذف هذه الشهادة؟',
+                    ])
+                </div>
+            </article>
+        @endforeach
     </div>
     @if($certificates->hasPages())
-    <div class="p-6 bg-gray-50/50 border-t border-gray-100">{{ $certificates->links() }}</div>
+        <div class="card mt-6 px-5 py-4">{{ $certificates->links() }}</div>
     @endif
-</div>
+@endif
 @endsection

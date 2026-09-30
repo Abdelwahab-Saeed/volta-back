@@ -1,9 +1,11 @@
 @extends('admin.layouts.app')
 
 @section('title', 'تعديل شهادة')
+@section('back', route('admin.certificates.index'))
+@section('back_label', 'الشهادات')
 
 @section('content')
-<div class="max-w-2xl bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-right">
+<div class="card p-6 max-w-3xl">
     <form action="{{ route('admin.certificates.update', $certificate) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')

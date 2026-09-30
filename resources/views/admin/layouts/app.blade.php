@@ -1,200 +1,295 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - Volta</title>
-    <link rel="icon" type="image/png" href="{{ asset('Logo.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Tajawal', sans-serif; }
-    </style>
+    @include('admin.partials.head')
+    <title>@yield('title', 'لوحة التحكم') · فولتا</title>
 </head>
-<body class="bg-gray-50 text-gray-900">
-    <div class="min-h-screen flex relative">
-        <!-- Sidebar Backdrop (Mobile) -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-20 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
+@php
+    $admin = auth()->user();
+    $unreadCount = $admin->unreadNotifications->count();
+    $pendingOrders = \App\Models\Order::where('status', \App\Enums\OrderStatus::PENDING->value)->count();
 
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 right-0 z-30 w-64 bg-slate-900 text-white transform translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out flex-shrink-0">
-            <div class="p-6 flex items-center justify-between lg:block">
-                <h1 class="text-2xl font-bold tracking-tight">فولتا <span class="text-blue-500 text-sm">للمسؤولين</span></h1>
-                <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    // One list drives the sidebar and the quick search (Ctrl+K).
+    // 'active' is the route-name pattern that highlights the item.
+    $navGroups = [
+        'نظرة عامة' => [
+            ['label' => 'الرئيسية', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'home'],
+            ['label' => 'الإشعارات', 'route' => 'admin.notifications.index', 'active' => 'admin.notifications.*', 'icon' => 'bell', 'badge' => $unreadCount],
+        ],
+        'المبيعات' => [
+            ['label' => 'الطلبات', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*', 'icon' => 'orders', 'badge' => $pendingOrders, 'badgeHint' => 'طلبات قيد الانتظار'],
+            ['label' => 'المنتجات المباعة', 'route' => 'admin.reports.sold_products', 'active' => 'admin.reports.*', 'icon' => 'chart'],
+        ],
+        'الكتالوج' => [
+            ['label' => 'المنتجات', 'route' => 'admin.products.index', 'active' => ['admin.products.*', 'admin.features.*', 'admin.images.*'], 'icon' => 'cube'],
+            ['label' => 'الأقسام', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*', 'icon' => 'folder'],
+            ['label' => 'العروض', 'route' => 'admin.offers.index', 'active' => 'admin.offers.*', 'icon' => 'tag'],
+            ['label' => 'الكوبونات', 'route' => 'admin.coupons.index', 'active' => 'admin.coupons.*', 'icon' => 'ticket'],
+        ],
+        'محتوى الموقع' => [
+            ['label' => 'البانرات', 'route' => 'admin.banners.index', 'active' => 'admin.banners.*', 'icon' => 'photo'],
+            ['label' => 'المقالات', 'route' => 'admin.posts.index', 'active' => 'admin.posts.*', 'icon' => 'newspaper'],
+            ['label' => 'الشركاء والعملاء', 'route' => 'admin.partners.index', 'active' => 'admin.partners.*', 'icon' => 'handshake'],
+            ['label' => 'الشهادات', 'route' => 'admin.certificates.index', 'active' => 'admin.certificates.*', 'icon' => 'badge'],
+            ['label' => 'فريق العمل', 'route' => 'admin.team-members.index', 'active' => 'admin.team-members.*', 'icon' => 'team'],
+        ],
+        'الإدارة' => [
+            ['label' => 'المستخدمون', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'icon' => 'users'],
+            ['label' => 'الإعدادات', 'route' => 'admin.settings.index', 'active' => 'admin.settings.*', 'icon' => 'cog'],
+        ],
+    ];
+
+    $quickCreate = [
+        ['label' => 'منتج جديد', 'route' => 'admin.products.create', 'icon' => 'cube'],
+        ['label' => 'عرض جديد', 'route' => 'admin.offers.create', 'icon' => 'tag'],
+        ['label' => 'كوبون جديد', 'route' => 'admin.coupons.create', 'icon' => 'ticket'],
+        ['label' => 'قسم جديد', 'route' => 'admin.categories.create', 'icon' => 'folder'],
+        ['label' => 'بانر جديد', 'route' => 'admin.banners.create', 'icon' => 'photo'],
+        ['label' => 'مقال جديد', 'route' => 'admin.posts.create', 'icon' => 'newspaper'],
+    ];
+
+    $paletteItems = collect($navGroups)->flatMap(fn ($items, $group) => collect($items)->map(fn ($item) => [
+        'label' => $item['label'], 'group' => $group, 'url' => route($item['route']), 'icon' => $item['icon'],
+    ]))->merge(collect($quickCreate)->map(fn ($item) => [
+        'label' => $item['label'], 'group' => 'إضافة سريعة', 'url' => route($item['route']), 'icon' => 'plus',
+    ]))->values();
+
+    $initial = mb_substr($admin->name, 0, 1);
+@endphp
+<body class="bg-slate-100/70">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:right-3 focus:z-[200] btn-primary">تخطي إلى المحتوى</a>
+
+    <div class="min-h-screen lg:flex">
+        {{-- Sidebar backdrop (mobile) --}}
+        <div id="sidebar-overlay" class="fixed inset-0 bg-navy-950/60 backdrop-blur-sm z-30 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
+
+        {{-- Sidebar --}}
+        <aside id="sidebar" class="fixed inset-y-0 right-0 z-40 w-72 lg:w-64 xl:w-72 bg-navy-900 text-slate-300 flex flex-col transform translate-x-full lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen transition-transform duration-300 ease-out shrink-0">
+            <div class="relative flex items-center justify-between h-16 px-5 border-b border-white/5">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5">
+                    <img src="{{ asset('images/admin-logo-white.png') }}" alt="Volta" class="h-6 w-auto">
+                    <span class="text-[11px] font-bold text-brand-300 bg-white/5 rounded-md px-1.5 py-0.5">لوحة التحكم</span>
+                </a>
+                <button type="button" onclick="toggleSidebar()" class="lg:hidden icon-btn text-slate-400 hover:bg-white/10 hover:text-white" aria-label="إغلاق القائمة">
+                    <x-admin.icon name="x" />
                 </button>
             </div>
-            <nav class="mt-6 px-4 space-y-2 overflow-y-auto max-h-[calc(100vh-160px)]">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    لوحة التحكم
-                </a>
-                <a href="{{ route('admin.categories.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.categories.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                    الأقسام
-                </a>
-                <a href="{{ route('admin.products.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.products.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    المنتجات
-                </a>
-                <a href="{{ route('admin.orders.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.orders.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                    الطلبات
-                </a>
-                <a href="{{ route('admin.users.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.users.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    المستخدمين
-                </a>
-                <a href="{{ route('admin.coupons.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.coupons.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
-                    الكوبونات
-                </a>
-                <a href="{{ route('admin.offers.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.offers.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                    العروض
-                </a>
-                <a href="{{ route('admin.banners.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.banners.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-                    البانرات
-                </a>
-                <a href="{{ route('admin.posts.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.posts.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                    المقالات
-                </a>
-                <a href="{{ route('admin.partners.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.partners.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    الشركاء والعملاء
-                </a>
-                <a href="{{ route('admin.certificates.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.certificates.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                    الشهادات
-                </a>
-                <a href="{{ route('admin.team-members.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.team-members.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    فريق العمل
-                </a>
-                <a href="{{ route('admin.reports.sold_products') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.reports.sold_products') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                    المنتجات المباعة
-                </a>
-                <a href="{{ route('admin.settings.index') }}" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-slate-800 text-blue-400' : '' }}">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    الإعدادات
-                </a>
+
+            <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6 [scrollbar-width:thin] [scrollbar-color:theme(colors.navy.700)_transparent]" aria-label="القائمة الرئيسية">
+                @foreach ($navGroups as $group => $items)
+                    <div>
+                        <p class="px-3 mb-1.5 text-[11px] font-bold tracking-wide text-slate-500">{{ $group }}</p>
+                        <ul class="space-y-0.5">
+                            @foreach ($items as $item)
+                                @php($isActive = request()->routeIs(...(array) $item['active']))
+                                <li>
+                                    <a href="{{ route($item['route']) }}"
+                                       @if($isActive) aria-current="page" @endif
+                                       class="group relative flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-semibold transition-colors {{ $isActive ? 'bg-white/10 text-white' : 'hover:bg-white/5 hover:text-white' }}">
+                                        @if($isActive)
+                                            <span class="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-gradient-to-b from-brand-400 to-teal-400"></span>
+                                        @endif
+                                        <x-admin.icon :name="$item['icon']" class="w-5 h-5 {{ $isActive ? 'text-brand-300' : 'text-slate-500 group-hover:text-slate-300' }}" />
+                                        <span class="flex-1 truncate">{{ $item['label'] }}</span>
+                                        @if(!empty($item['badge']))
+                                            <span class="min-w-[1.5rem] h-6 px-1.5 inline-flex items-center justify-center rounded-full text-[11px] font-extrabold {{ $isActive ? 'bg-brand-500 text-white' : 'bg-brand-500/20 text-brand-200' }}" title="{{ $item['badgeHint'] ?? '' }}">
+                                                {{ $item['badge'] > 99 ? '99+' : $item['badge'] }}
+                                            </span>
+                                        @endif
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
             </nav>
-            <div class="absolute bottom-0 w-64 p-4 text-right">
+
+            <div class="p-3 border-t border-white/5">
+                <a href="{{ config('app.frontend_url') }}" target="_blank" rel="noopener" class="flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-semibold hover:bg-white/5 hover:text-white transition-colors">
+                    <x-admin.icon name="globe" class="w-5 h-5 text-slate-500" />
+                    <span class="flex-1">زيارة المتجر</span>
+                    <x-admin.icon name="external" class="w-4 h-4 text-slate-500" />
+                </a>
                 <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" class="hidden">
                     @csrf
                 </form>
-                <button type="button" onclick="confirmAction('logout-form', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', 'danger')" class="flex items-center w-full p-3 rounded-xl hover:bg-red-900 transition-colors text-red-400 font-bold">
-                    <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                <button type="button" onclick="confirmAction('logout-form', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', 'danger')" class="w-full flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-semibold text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-colors">
+                    <x-admin.icon name="logout" class="w-5 h-5" />
                     تسجيل الخروج
                 </button>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col h-screen overflow-y-auto w-full">
-            <!-- Header -->
-            <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 sticky top-0 z-10">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <button onclick="toggleSidebar()" class="lg:hidden ml-4 p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <h2 class="text-xl font-black text-gray-800">@yield('title', 'لوحة الإدارة')</h2>
-                    </div>
-                    <div class="flex items-center space-x-reverse space-x-4">
-                        <!-- Notifications Bell -->
-                        <a href="{{ route('admin.notifications.index') }}" class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors bg-gray-50 rounded-full hover:bg-gray-100">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
-                                <span class="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full">
-                                    {{ auth()->user()->unreadNotifications->count() }}
-                                </span>
+        {{-- Main --}}
+        <div class="flex-1 min-w-0 flex flex-col">
+            <header class="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80">
+                <div class="flex items-center gap-3 h-16 px-4 sm:px-6 lg:px-8">
+                    <button type="button" onclick="toggleSidebar()" class="lg:hidden icon-btn -mr-2" aria-label="فتح القائمة">
+                        <x-admin.icon name="menu" class="w-6 h-6" />
+                    </button>
+
+                    {{-- Quick search (Ctrl+K) --}}
+                    <button type="button" onclick="openPalette()" class="flex items-center gap-2 h-10 w-full max-w-xs px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-400 hover:border-slate-300 hover:bg-white transition">
+                        <x-admin.icon name="search" class="w-4 h-4" />
+                        <span class="flex-1 text-right">انتقل إلى صفحة…</span>
+                        <span class="hidden sm:flex items-center gap-1" dir="ltr"><span class="kbd">Ctrl</span><span class="kbd">K</span></span>
+                    </button>
+
+                    <div class="flex items-center gap-1.5 sm:gap-2 mr-auto">
+                        {{-- Quick create --}}
+                        <div class="relative" data-dropdown>
+                            <button type="button" class="btn-primary h-10 px-3 sm:px-4" onclick="toggleDropdown(this)" aria-haspopup="true" aria-expanded="false">
+                                <x-admin.icon name="plus" class="w-5 h-5" />
+                                <span class="hidden sm:inline">إضافة</span>
+                            </button>
+                            <div class="dropdown-menu hidden absolute left-0 mt-2 w-56 card shadow-pop p-1.5 z-30">
+                                @foreach ($quickCreate as $item)
+                                    <a href="{{ route($item['route']) }}" class="flex items-center gap-3 px-3 h-10 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-900">
+                                        <x-admin.icon :name="$item['icon']" class="w-4 h-4 text-slate-400" />
+                                        {{ $item['label'] }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Notifications --}}
+                        <a href="{{ route('admin.notifications.index') }}" class="icon-btn w-10 h-10 relative" data-tip="الإشعارات" aria-label="الإشعارات{{ $unreadCount ? " ({$unreadCount} غير مقروءة)" : '' }}">
+                            <x-admin.icon name="bell" class="w-6 h-6" />
+                            @if($unreadCount > 0)
+                                <span class="absolute top-1 right-1 min-w-[1.1rem] h-[1.1rem] px-1 flex items-center justify-center text-[10px] font-extrabold text-white bg-red-500 ring-2 ring-white rounded-full">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
                             @endif
                         </a>
 
-                        <div class="hidden sm:flex flex-col text-left ml-3">
-                            <span class="text-xs text-gray-400 font-bold">المسؤول</span>
-                            <span class="text-sm text-gray-700 font-black">{{ auth()->user()->name }}</span>
-                        </div>
-                        @if(auth()->user()->image)
-                            <img src="{{ asset('storage/' . auth()->user()->image) }}" class="w-10 h-10 rounded-xl object-cover ring-2 ring-gray-50 shadow-sm">
-                        @else
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-md flex items-center justify-center font-black">
-                                {{ substr(auth()->user()->name, 0, 1) }}
+                        {{-- Account --}}
+                        <div class="relative" data-dropdown>
+                            <button type="button" onclick="toggleDropdown(this)" class="flex items-center gap-2.5 h-10 pr-1 pl-2 rounded-xl hover:bg-slate-100 transition" aria-haspopup="true" aria-expanded="false">
+                                @if($admin->image)
+                                    <img src="{{ asset('storage/' . $admin->image) }}" alt="" class="w-8 h-8 rounded-lg object-cover">
+                                @else
+                                    <span class="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-navy-800 text-white flex items-center justify-center text-sm font-extrabold">{{ $initial }}</span>
+                                @endif
+                                <span class="hidden md:flex flex-col items-start leading-tight">
+                                    <span class="text-sm font-bold text-navy-900 max-w-[9rem] truncate">{{ $admin->name }}</span>
+                                    <span class="text-[11px] text-slate-400 font-semibold">مسؤول</span>
+                                </span>
+                                <x-admin.icon name="chevron-down" class="hidden md:block w-4 h-4 text-slate-400" />
+                            </button>
+                            <div class="dropdown-menu hidden absolute left-0 mt-2 w-60 card shadow-pop p-1.5 z-30">
+                                <div class="px-3 py-2.5 border-b border-slate-100 mb-1">
+                                    <p class="text-sm font-bold text-navy-900 truncate">{{ $admin->name }}</p>
+                                    <p class="text-xs text-slate-500 truncate" dir="ltr">{{ $admin->email }}</p>
+                                </div>
+                                <a href="{{ route('admin.users.edit', $admin) }}" class="flex items-center gap-3 px-3 h-10 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                                    <x-admin.icon name="users" class="w-4 h-4 text-slate-400" /> حسابي
+                                </a>
+                                <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-3 px-3 h-10 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100">
+                                    <x-admin.icon name="cog" class="w-4 h-4 text-slate-400" /> الإعدادات
+                                </a>
+                                <button type="button" onclick="confirmAction('logout-form', 'هل أنت متأكد من رغبتك في تسجيل الخروج؟', 'تسجيل الخروج', 'danger')" class="w-full flex items-center gap-3 px-3 h-10 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50">
+                                    <x-admin.icon name="logout" class="w-4 h-4" /> تسجيل الخروج
+                                </button>
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Page Content -->
-            <div class="p-4 sm:p-8">
-                @if(session('success'))
-                    <div class="bg-green-50 border-r-4 border-green-500 text-green-700 p-4 mb-8 rounded-xl shadow-sm text-right flex items-center" role="alert">
-                        <svg class="w-5 h-5 ml-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        <p class="font-bold">{{ session('success') }}</p>
+            <main id="main-content" class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+                {{-- Page header: title, optional subtitle / back link, and page actions on the end side --}}
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+                    <div class="min-w-0">
+                        @hasSection('back')
+                            <a href="@yield('back')" class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-navy-900 mb-2">
+                                <x-admin.icon name="arrow-right" class="w-4 h-4" />
+                                @yield('back_label', 'رجوع')
+                            </a>
+                        @endif
+                        {{-- 'heading' overrides the visible title when the <title> text is not what the page should show --}}
+                        <h1 class="text-2xl font-extrabold text-navy-900 leading-tight truncate">
+                            @hasSection('heading') @yield('heading') @else @yield('title', 'لوحة التحكم') @endif
+                        </h1>
+                        @hasSection('subtitle')
+                            <p class="mt-1 text-sm text-slate-500">@yield('subtitle')</p>
+                        @endif
                     </div>
-                @endif
+                    @hasSection('actions')
+                        <div class="flex flex-wrap items-center gap-2 shrink-0">@yield('actions')</div>
+                    @endif
+                </div>
 
                 @if($errors->any())
-                    <div class="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 mb-8 rounded-xl shadow-sm text-right">
-                        <div class="flex items-center mb-2">
-                            <svg class="w-5 h-5 ml-3 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-                            <p class="font-bold text-lg">خطأ في البيانات:</p>
+                    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 flex gap-3" role="alert">
+                        <x-admin.icon name="warning" class="w-6 h-6 text-red-500" />
+                        <div class="min-w-0">
+                            <p class="font-bold text-red-800">راجع البيانات التالية قبل الحفظ:</p>
+                            <ul class="mt-1.5 space-y-1 text-sm text-red-700 list-disc pr-5">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
-                        <ul class="list-disc list-inside mr-8">
-                            @foreach ($errors->all() as $error)
-                                <li class="font-medium">{{ $error }}</li>
-                            @endforeach
-                        </ul>
                     </div>
                 @endif
 
                 @yield('content')
-                <div class="text-center mt-10">
-                    <p class="text-md">
-                        Developed and Maintained by <a href='https://falak-innovation.com/' target='blank' class="hover:underline hover:text-secondary transition-colors" >
-                        Falak Innovation
-                        </a> © All Rights Reserved - Volta
-                    </p>
-                </div>
-            </div>
-        </main>
+            </main>
+
+            <footer class="px-4 sm:px-6 lg:px-8 py-5 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-200/70">
+                <span>© {{ date('Y') }} Volta · جميع الحقوق محفوظة</span>
+                <span dir="ltr">Developed and Maintained by <a href="https://falak-innovation.com/" target="_blank" rel="noopener" class="font-bold hover:text-brand-700">Falak Innovation</a></span>
+            </footer>
+        </div>
     </div>
 
-    <!-- Global Confirmation Modal -->
-    <div id="confirm-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div id="modal-backdrop" class="fixed inset-0 transition-opacity bg-slate-900 bg-opacity-75" aria-hidden="true" onclick="closeConfirmModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-100">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start sm:flex-row-reverse">
-                        <div id="modal-icon-container" class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10 sm:ml-4">
-                            <svg id="modal-icon" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:text-right flex-1">
-                            <h3 class="text-xl leading-6 font-black text-gray-900" id="modal-title">تأكيد الإجراء</h3>
-                            <div class="mt-2 text-right">
-                                <p class="text-gray-500 font-medium" id="modal-message">هل أنت متأكد من رغبتك في تنفيذ هذا الإجراء؟</p>
-                            </div>
-                        </div>
+    {{-- Success toast --}}
+    @if(session('success'))
+        <div id="toast" class="fixed top-20 left-4 right-4 sm:right-auto sm:w-96 z-[90] transition-all duration-300" role="status" aria-live="polite">
+            <div class="card shadow-pop flex items-start gap-3 p-4 border-emerald-200">
+                <span class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <x-admin.icon name="check" class="w-5 h-5" stroke="2.5" />
+                </span>
+                <p class="flex-1 pt-1.5 text-sm font-bold text-navy-900">{{ session('success') }}</p>
+                <button type="button" onclick="hideToast()" class="icon-btn w-8 h-8" aria-label="إغلاق">
+                    <x-admin.icon name="x" class="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Confirmation dialog (confirmAction) --}}
+    <div id="confirm-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div id="modal-backdrop" class="fixed inset-0 bg-navy-950/60 backdrop-blur-sm" aria-hidden="true" onclick="closeConfirmModal()"></div>
+        <div class="fixed inset-0 flex items-end sm:items-center justify-center p-4 pointer-events-none">
+            <div class="pointer-events-auto w-full sm:max-w-md card shadow-pop overflow-hidden">
+                <div class="p-6 flex gap-4">
+                    <div id="modal-icon-container" class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <svg id="modal-icon" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0 pt-1">
+                        <h3 class="text-lg font-extrabold text-navy-900" id="modal-title">تأكيد الإجراء</h3>
+                        <p class="mt-1.5 text-sm text-slate-600 leading-relaxed" id="modal-message">هل أنت متأكد من رغبتك في تنفيذ هذا الإجراء؟</p>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse space-x-reverse space-x-3">
-                    <button type="button" id="confirm-btn" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2.5 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none transition-all sm:w-auto">
-                        تأكيد
-                    </button>
-                    <button type="button" onclick="closeConfirmModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all sm:mt-0 sm:w-auto">
-                        إلغاء
-                    </button>
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-start gap-2">
+                    <button type="button" id="confirm-btn" class="btn bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 sm:min-w-[7rem]">تأكيد</button>
+                    <button type="button" onclick="closeConfirmModal()" class="btn-secondary sm:min-w-[7rem]">إلغاء</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    {{-- Quick search (Ctrl+K) --}}
+    <div id="palette" class="fixed inset-0 z-[110] hidden" role="dialog" aria-modal="true" aria-label="البحث السريع">
+        <div class="fixed inset-0 bg-navy-950/60 backdrop-blur-sm" onclick="closePalette()"></div>
+        <div class="relative mx-auto mt-[12vh] w-[calc(100%-2rem)] max-w-lg card shadow-pop overflow-hidden">
+            <div class="flex items-center gap-3 px-4 border-b border-slate-100">
+                <x-admin.icon name="search" class="w-5 h-5 text-slate-400" />
+                <input id="palette-input" type="text" autocomplete="off" placeholder="اكتب اسم الصفحة… (طلبات، منتجات، كوبون)" class="flex-1 h-14 bg-transparent text-base text-navy-900 placeholder:text-slate-400 focus:outline-none" aria-controls="palette-list">
+                <span class="kbd">Esc</span>
+            </div>
+            <ul id="palette-list" class="max-h-80 overflow-y-auto p-2" role="listbox"></ul>
         </div>
     </div>
 
@@ -221,49 +316,129 @@
                 setTimeout(() => {
                     overlay.classList.add('hidden');
                 }, 300);
-                document.body.style.overflow = 'auto';
+                document.body.style.overflow = '';
             }
         }
+
+        // Same signature as before: pages call confirmAction(formId, message, title, type) and the form
+        // with that id is submitted on confirm. type 'danger' (default) = red, anything else = brand blue.
         function confirmAction(formId, message = 'هل أنت متأكد؟', title = 'تأكيد الإجراء', type = 'danger') {
             currentFormId = formId;
             document.getElementById('modal-message').innerText = message;
             document.getElementById('modal-title').innerText = title;
-            
+
+            const danger = type === 'danger';
             const iconContainer = document.getElementById('modal-icon-container');
             const icon = document.getElementById('modal-icon');
             const confirmBtn = document.getElementById('confirm-btn');
-            
-            if (type === 'danger') {
-                iconContainer.classList.add('bg-red-100');
-                iconContainer.classList.remove('bg-blue-100');
-                icon.classList.add('text-red-600');
-                icon.classList.remove('text-blue-600');
-                confirmBtn.classList.add('bg-red-600', 'hover:bg-red-700');
-                confirmBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            } else {
-                iconContainer.classList.add('bg-blue-100');
-                iconContainer.classList.remove('bg-red-100');
-                icon.classList.add('text-blue-600');
-                icon.classList.remove('text-red-600');
-                confirmBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                confirmBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
-            }
+
+            iconContainer.classList.toggle('bg-red-100', danger);
+            iconContainer.classList.toggle('bg-brand-100', !danger);
+            icon.classList.toggle('text-red-600', danger);
+            icon.classList.toggle('text-brand-700', !danger);
+            confirmBtn.classList.toggle('bg-red-600', danger);
+            confirmBtn.classList.toggle('hover:bg-red-700', danger);
+            confirmBtn.classList.toggle('bg-brand-600', !danger);
+            confirmBtn.classList.toggle('hover:bg-brand-700', !danger);
 
             document.getElementById('confirm-modal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            confirmBtn.focus();
 
-            confirmBtn.onclick = function() {
+            confirmBtn.onclick = function () {
+                confirmDismissCallback = null;
                 if (currentFormId) {
+                    confirmBtn.disabled = true;
                     document.getElementById(currentFormId).submit();
                 }
             };
         }
 
+        // Optional: called when the dialog is dismissed without confirming (e.g. to reset a select).
+        let confirmDismissCallback = null;
+        function onConfirmDismiss(callback) { confirmDismissCallback = callback; }
+
         function closeConfirmModal() {
+            if (document.getElementById('confirm-modal').classList.contains('hidden')) return;
+            if (confirmDismissCallback) { confirmDismissCallback(); confirmDismissCallback = null; }
             document.getElementById('confirm-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
+            document.getElementById('confirm-btn').disabled = false;
+            document.body.style.overflow = '';
             currentFormId = null;
         }
+
+        // Dropdowns (quick create, account menu): one open at a time, closed by outside click or Esc.
+        function toggleDropdown(button) {
+            const menu = button.parentElement.querySelector('.dropdown-menu');
+            const open = menu.classList.contains('hidden');
+            closeDropdowns();
+            if (open) {
+                menu.classList.remove('hidden');
+                button.setAttribute('aria-expanded', 'true');
+            }
+        }
+        function closeDropdowns() {
+            document.querySelectorAll('[data-dropdown]').forEach(el => {
+                el.querySelector('.dropdown-menu').classList.add('hidden');
+                el.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+            });
+        }
+        document.addEventListener('click', e => { if (!e.target.closest('[data-dropdown]')) closeDropdowns(); });
+
+        // Success toast hides itself after a few seconds.
+        function hideToast() {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.classList.add('opacity-0', '-translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }
+        setTimeout(hideToast, 5000);
+
+        // Quick search over the sidebar pages and the quick-create links.
+        const paletteItems = @json($paletteItems);
+        let paletteIndex = 0;
+        let paletteResults = [];
+
+        function renderPalette(query = '') {
+            const q = query.trim().toLowerCase();
+            paletteResults = paletteItems.filter(item => !q || item.label.toLowerCase().includes(q) || item.group.toLowerCase().includes(q));
+            paletteIndex = Math.min(paletteIndex, Math.max(paletteResults.length - 1, 0));
+            const list = document.getElementById('palette-list');
+            if (!paletteResults.length) {
+                list.innerHTML = '<li class="px-3 py-8 text-center text-sm text-slate-500">لا توجد نتائج</li>';
+                return;
+            }
+            list.innerHTML = paletteResults.map((item, i) => `
+                <li role="option" aria-selected="${i === paletteIndex}">
+                    <a href="${item.url}" class="flex items-center gap-3 px-3 h-11 rounded-lg text-sm ${i === paletteIndex ? 'bg-brand-50 text-brand-800' : 'text-slate-700 hover:bg-slate-50'}">
+                        <span class="flex-1 font-bold">${item.label}</span>
+                        <span class="text-xs text-slate-400">${item.group}</span>
+                    </a>
+                </li>`).join('');
+        }
+        function openPalette() {
+            const input = document.getElementById('palette-input');
+            document.getElementById('palette').classList.remove('hidden');
+            input.value = '';
+            paletteIndex = 0;
+            renderPalette();
+            setTimeout(() => input.focus(), 10);
+        }
+        function closePalette() {
+            document.getElementById('palette').classList.add('hidden');
+        }
+        document.getElementById('palette-input').addEventListener('input', e => { paletteIndex = 0; renderPalette(e.target.value); });
+        document.getElementById('palette-input').addEventListener('keydown', e => {
+            if (e.key === 'ArrowDown') { e.preventDefault(); paletteIndex = Math.min(paletteIndex + 1, paletteResults.length - 1); renderPalette(e.target.value); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); paletteIndex = Math.max(paletteIndex - 1, 0); renderPalette(e.target.value); }
+            if (e.key === 'Enter' && paletteResults[paletteIndex]) { window.location = paletteResults[paletteIndex].url; }
+        });
+
+        document.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPalette(); }
+            if (e.key === 'Escape') { closePalette(); closeConfirmModal(); closeDropdowns(); }
+        });
     </script>
+    @stack('scripts')
 </body>
 </html>

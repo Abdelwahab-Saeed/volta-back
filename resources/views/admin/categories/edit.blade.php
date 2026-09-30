@@ -1,56 +1,18 @@
 @extends('admin.layouts.app')
 
 @section('title', 'تعديل القسم: ' . $category->name)
+@section('heading', $category->name)
+@section('subtitle', 'تعديل بيانات القسم.')
+@section('back', route('admin.categories.index'))
+@section('back_label', 'الأقسام')
 
 @section('content')
-<div class="max-w-2xl bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-right">
+<div class="card p-6 max-w-3xl">
     <form action="{{ route('admin.categories.update', $category->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
-        
-        <div class="space-y-6">
-            
-            <!-- Name -->
-            @include('admin.partials.translatable-field', ['field' => 'name', 'model' => $category])
-
-            <!-- Description -->
-            @include('admin.partials.translatable-field', ['field' => 'description', 'model' => $category, 'textarea' => true])
-
-            <!-- Image -->
-            <div>
-                <label for="image" class="block text-sm font-bold text-gray-700 mb-2">صورة القسم</label>
-                @if($category->image)
-                    <div class="mb-2">
-                        <img src="{{ asset('storage/' . $category->image) }}" class="h-20 w-20 rounded-lg object-cover bg-gray-100">
-                    </div>
-                @endif
-                <input type="file" name="image" id="image" accept="image/*"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-400 file:ml-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-            </div>
-
-            <!-- Status -->
-            <div class="flex items-center">
-                <input type="checkbox" name="status" id="status" value="1" {{ $category->status ? 'checked' : '' }}
-                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                <label for="status" class="mr-2 text-sm font-bold text-gray-700">تفعيل القسم</label>
-            </div>
-
-            <!-- Order -->
-            <div>
-                <label for="category_order" class="block text-sm font-bold text-gray-700 mb-2 text-right">الترتيب (اختياري)</label>
-                <input type="number" name="category_order" id="category_order" value="{{ old('category_order', $category->category_order) }}" placeholder="مثال: 1"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-right">
-            </div>
-
-            <div class="pt-4 flex space-x-reverse space-x-4">
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-bold transition-all shadow-md">
-                    حفظ التعديلات
-                </button>
-                <a href="{{ route('admin.categories.index') }}" class="px-8 py-2.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-all font-bold">
-                    إلغاء
-                </a>
-            </div>
-        </div>
+        @include('admin.categories._form', ['category' => $category])
+        @include('admin.partials.form-actions', ['submit' => 'حفظ التعديلات', 'cancel' => route('admin.categories.index')])
     </form>
 </div>
 @endsection

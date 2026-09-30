@@ -1,5 +1,8 @@
-{{-- Params: $submit (button label), $cancel (url) --}}
-<div class="pt-4 flex gap-4">
-    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-2.5 rounded-xl font-bold transition-all shadow-md">{{ $submit }}</button>
-    <a href="{{ $cancel }}" class="px-10 py-2.5 text-gray-500 hover:bg-gray-100 rounded-xl transition-all font-bold">إلغاء</a>
+{{-- Save / cancel row at the bottom of a form card. Params: $submit (button label), $cancel (url) --}}
+<div class="card-footer flex flex-col-reverse sm:flex-row sm:items-center gap-3 -mx-6 -mb-6 mt-8 px-6">
+    <button type="submit" class="btn-primary sm:min-w-[9rem]">
+        <x-admin.icon name="check" class="w-4 h-4" />
+        {{ $submit }}
+    </button>
+    <a href="{{ $cancel }}" class="btn-ghost">إلغاء</a>
 </div>

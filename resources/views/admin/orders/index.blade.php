@@ -1,102 +1,111 @@
 @extends('admin.layouts.app')
 
-@section('title', 'إدارة الطلبات')
+@section('title', 'الطلبات')
+@section('subtitle', 'تابع طلبات العملاء وحدّث حالتها. تغيير الحالة من القائمة يُحفظ فوراً.')
+
+@php
+    $statusLabels = [
+        'pending' => 'قيد الانتظار',
+        'processing' => 'قيد التجهيز',
+        'shipped' => 'تم الشحن',
+        'delivered' => 'تم التوصيل',
+        'cancelled' => 'ملغي',
+    ];
+    // Tint of the inline status picker, so the list reads at a glance.
+    $statusTone = [
+        'pending' => 'bg-amber-50 text-amber-800 border-amber-200',
+        'processing' => 'bg-brand-50 text-brand-800 border-brand-200',
+        'shipped' => 'bg-violet-50 text-violet-800 border-violet-200',
+        'delivered' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        'cancelled' => 'bg-red-50 text-red-800 border-red-200',
+    ];
+@endphp
 
 @section('content')
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-right">
-    <div class="p-6 border-b border-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 text-sm">
-        <p class="text-gray-500 font-medium italic">تابع حالات الشحن وقم بإدارة طلبات العملاء.</p>
-        <div class="flex items-center text-xs text-gray-400 font-bold bg-gray-50 px-3 py-1 rounded-lg">
-            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            تحديث الحالة تلقائي عند الاختيار
+<div class="card overflow-hidden">
+    @if($orders->isEmpty())
+        <x-admin.empty-state icon="orders" title="لا توجد طلبات حالياً" text="ستظهر طلبات العملاء هنا فور وصولها." />
+    @else
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الطلب</th>
+                        <th>العميل</th>
+                        <th>الإجمالي</th>
+                        <th>العرض</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th class="text-left">التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($orders as $order)
+                    <tr>
+                        <td>
+                            <a href="{{ route('admin.orders.show', $order) }}" class="font-extrabold hover:text-brand-700 {{ $order->status === 'cancelled' ? 'line-through text-slate-400' : 'text-navy-900' }}">#{{ $order->id }}</a>
+                        </td>
+                        <td>
+                            <div class="font-bold text-slate-800 whitespace-nowrap">{{ $order->user?->name ?? $order->full_name }}</div>
+                            <div class="text-xs text-slate-400" dir="ltr">{{ $order->phone_number ?? $order->user?->email ?? '—' }}</div>
+                        </td>
+                        <td><x-admin.money :value="$order->total_amount" /></td>
+                        <td>
+                            @if($order->offer_snapshot || $order->offer_id)
+                                <div class="flex flex-col items-start gap-1">
+                                    <span class="badge-info max-w-[11rem] truncate">{{ $order->offer_snapshot['name_ar'] ?? $order->offer?->name_ar ?? 'عرض' }}</span>
+                                    <span class="text-xs font-bold text-emerald-600 whitespace-nowrap">وفّر {{ \App\Support\Money::format($order->offer_discount) }} ج.م</span>
+                                </div>
+                            @else
+                                <span class="text-slate-300">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            <form id="status-form-{{ $order->id }}" action="{{ route('admin.orders.update', $order) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <label class="sr-only" for="status-{{ $order->id }}">حالة الطلب #{{ $order->id }}</label>
+                                <select id="status-{{ $order->id }}" name="status" data-current="{{ $order->status }}" onchange="changeOrderStatus(this)"
+                                    class="h-9 pr-3 pl-8 rounded-full border text-xs font-extrabold cursor-pointer appearance-none bg-no-repeat focus:outline-none focus:ring-4 focus:ring-brand-500/15 {{ $statusTone[$order->status] ?? 'bg-slate-50 text-slate-700 border-slate-200' }}"
+                                    style="background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e&quot;); background-position: left 0.5rem center; background-size: 1.1em;">
+                                    @foreach(App\Enums\OrderStatus::cases() as $status)
+                                        <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>{{ $statusLabels[$status->value] ?? $status->value }}</option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        </td>
+                        <td class="whitespace-nowrap">
+                            <div class="font-semibold text-slate-700">{{ $order->created_at->format('Y/m/d') }}</div>
+                            <div class="text-xs text-slate-400">{{ $order->created_at->format('H:i') }}</div>
+                        </td>
+                        <td class="text-left">
+                            <a href="{{ route('admin.orders.show', $order) }}" class="btn-secondary btn-sm">
+                                <x-admin.icon name="eye" class="w-4 h-4" />
+                                عرض
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full whitespace-nowrap">
-            <thead class="bg-gray-50/50 text-gray-400 text-xs uppercase font-bold border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4 text-right">رقم الطلب</th>
-                    <th class="px-6 py-4 text-right">العميل</th>
-                    <th class="px-6 py-4 text-center">إجمالي المبلغ</th>
-                    <th class="px-6 py-4 text-center">العرض</th>
-                    <th class="px-6 py-4 text-center">الحالة</th>
-                    <th class="px-6 py-4 text-center">التاريخ</th>
-                    <th class="px-6 py-4 text-left">العمليات</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($orders as $order)
-                <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="px-6 py-4">
-                        <span class="font-black text-slate-900 {{ $order->status === 'cancelled' ? 'line-through text-gray-400 opacity-50' : '' }}">
-                            #{{ $order->id }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm font-black text-gray-900">{{ $order->user?->name ?? $order->full_name }}</div>
-                        <div class="text-[10px] text-gray-400 font-medium">{{ $order->user?->email ?? 'غير متوفر' }}</div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-sm font-black text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">
-                            {{ \App\Support\Money::format($order->total_amount) }} ج.م
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        @if($order->offer_snapshot || $order->offer_id)
-                            <div class="flex flex-col items-center gap-1">
-                                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">{{ $order->offer_snapshot['name_ar'] ?? $order->offer?->name_ar ?? 'عرض' }}</span>
-                                <span class="text-xs text-green-600 font-bold">-{{ \App\Support\Money::format($order->offer_discount) }} ج.م</span>
-                            </div>
-                        @else
-                            <span class="text-xs text-gray-400">—</span>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <form action="{{ route('admin.orders.update', $order) }}" method="POST" class="inline-block relative">
-                            @csrf
-                            @method('PUT')
-                            <select name="status" onchange="this.form.submit()" 
-                                class="text-xs font-black px-5 py-2 rounded-full border-none outline-none cursor-pointer shadow-sm transition-all appearance-none pr-10 pl-5">
-                                @foreach(App\Enums\OrderStatus::cases() as $status)
-                                    <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
-                                        @switch($status->value)
-                                            @case('pending') قيد الانتظار @break
-                                            @case('processing') قيد التجهيز @break
-                                            @case('shipped') تم الشحن @break
-                                            @case('delivered') تم التوصيل @break
-                                            @case('cancelled') ملغي @break
-                                            @default {{ $status->value }}
-                                        @endswitch
-                                    </option>
-                                @endforeach
-                            </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-current opacity-50">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                        </form>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-sm text-gray-400 font-bold">
-                            {{ $order->created_at->format('Y/m/d') }}
-                            <span class="text-[10px] block opacity-75 font-medium">{{ $order->created_at->format('H:i') }}</span>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-left">
-                        <a href="{{ route('admin.orders.show', $order) }}" class="inline-flex p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100" title="عرض التفاصيل">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        </a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 font-bold italic">لا توجد طلبات حالياً.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <div class="p-6 bg-gray-50/50 border-t border-gray-100">
-        {{ $orders->links() }}
-    </div>
+        @if($orders->hasPages())
+            <div class="card-footer">{{ $orders->links() }}</div>
+        @endif
+    @endif
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Status changes save straight away. Cancelling puts the items back in stock, so it asks first.
+    function changeOrderStatus(select) {
+        if (select.value !== 'cancelled') {
+            select.form.submit();
+            return;
+        }
+        onConfirmDismiss(() => { select.value = select.dataset.current; });
+        confirmAction(select.form.id, 'سيتم إلغاء الطلب وإرجاع كمياته إلى المخزون.', 'إلغاء الطلب؟');
+    }
+</script>
+@endpush

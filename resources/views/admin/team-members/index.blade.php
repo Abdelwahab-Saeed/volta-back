@@ -1,70 +1,48 @@
 @extends('admin.layouts.app')
 
 @section('title', 'فريق العمل')
+@section('subtitle', 'الأشخاص الذين يظهرون في قسم "فريق العمل" بالصفحة الرئيسية.')
 
-@section('content')
-<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 text-right">
-    <div>
-        <h1 class="text-2xl font-black text-gray-900">فريق العمل</h1>
-        <p class="text-gray-500 font-medium">الأشخاص الذين يظهرون في قسم "فريق العمل" بالصفحة الرئيسية.</p>
-    </div>
-    <a href="{{ route('admin.team-members.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all font-bold flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+@section('actions')
+    <a href="{{ route('admin.team-members.create') }}" class="btn-primary">
+        <x-admin.icon name="plus" class="w-4 h-4" />
         إضافة عضو
     </a>
-</div>
+@endsection
 
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-right whitespace-nowrap">
-            <thead class="bg-gray-50/50 text-gray-500 text-xs font-bold border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4">العضو</th>
-                    <th class="px-6 py-4">المسمى الوظيفي</th>
-                    <th class="px-6 py-4 text-center">الترتيب</th>
-                    <th class="px-6 py-4 text-center">الحالة</th>
-                    <th class="px-6 py-4 text-left">العمليات</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($members as $member)
-                <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            @if($member->photo)
-                                <img src="{{ asset('storage/' . $member->photo) }}" alt="" class="w-12 h-12 rounded-full object-cover border border-gray-100">
-                            @else
-                                <div class="w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center font-black">{{ mb_substr($member->name_ar ?: $member->name_en, 0, 1) }}</div>
-                            @endif
-                            <p class="font-black text-gray-900 text-sm">{{ $member->name_ar ?: $member->name_en }}</p>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">{{ $member->role_ar ?: $member->role_en }}</td>
-                    <td class="px-6 py-4 text-center text-gray-500 text-sm">{{ $member->sort_order }}</td>
-                    <td class="px-6 py-4 text-center">@include('admin.partials.status-badge', ['active' => $member->is_active])</td>
-                    <td class="px-6 py-4">
-                        @include('admin.partials.row-actions', [
-                            'edit' => route('admin.team-members.edit', $member),
-                            'destroy' => route('admin.team-members.destroy', $member),
-                            'id' => 'delete-member-' . $member->id,
-                            'confirm' => 'هل أنت متأكد من حذف هذا العضو؟',
-                        ])
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                        <p class="text-lg font-black mb-2">لم تتم إضافة أعضاء بعد</p>
-                        <p class="text-sm mb-3">القسم لا يظهر في الموقع حتى تضيف عضواً واحداً على الأقل.</p>
-                        <a href="{{ route('admin.team-members.create') }}" class="text-blue-600 hover:text-blue-700 font-bold underline">أضف أول عضو الآن</a>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+@section('content')
+@if($members->isEmpty())
+    <div class="card">
+        <x-admin.empty-state icon="team" title="لم تتم إضافة أعضاء بعد" text="القسم لا يظهر في الموقع حتى تضيف عضواً واحداً على الأقل." :action="route('admin.team-members.create')" action-label="أضف أول عضو" />
+    </div>
+@else
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        @foreach($members as $member)
+            <article class="card p-5 flex flex-col items-center text-center {{ $member->is_active ? '' : 'opacity-70' }}">
+                @if($member->photo)
+                    <img src="{{ asset('storage/' . $member->photo) }}" alt="" class="w-20 h-20 rounded-full object-cover ring-4 ring-slate-100">
+                @else
+                    <span class="w-20 h-20 rounded-full bg-navy-900 text-white text-2xl font-extrabold flex items-center justify-center ring-4 ring-slate-100">{{ mb_substr($member->name_ar ?: $member->name_en, 0, 1) }}</span>
+                @endif
+                <p class="mt-3 font-extrabold text-navy-900">{{ $member->name_ar ?: $member->name_en }}</p>
+                <p class="text-sm font-semibold text-brand-700">{{ $member->role_ar ?: $member->role_en }}</p>
+                <div class="mt-2 flex items-center gap-2">
+                    @include('admin.partials.status-badge', ['active' => $member->is_active])
+                    <span class="chip">ترتيب {{ $member->sort_order }}</span>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 w-full flex justify-center">
+                    @include('admin.partials.row-actions', [
+                        'edit' => route('admin.team-members.edit', $member),
+                        'destroy' => route('admin.team-members.destroy', $member),
+                        'id' => 'delete-member-' . $member->id,
+                        'confirm' => 'هل أنت متأكد من حذف هذا العضو؟',
+                    ])
+                </div>
+            </article>
+        @endforeach
     </div>
     @if($members->hasPages())
-    <div class="p-6 bg-gray-50/50 border-t border-gray-100">{{ $members->links() }}</div>
+        <div class="card mt-6 px-5 py-4">{{ $members->links() }}</div>
     @endif
-</div>
+@endif
 @endsection

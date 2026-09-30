@@ -1,123 +1,92 @@
 @extends('admin.layouts.app')
 
-@section('title', 'إدارة المنتجات')
+@section('title', 'المنتجات')
+@section('subtitle', 'تحكم في أسعار منتجاتك ومخزونها وصورها.')
+
+@section('actions')
+    <a href="{{ route('admin.products.create') }}" class="btn-primary">
+        <x-admin.icon name="plus" class="w-4 h-4" />
+        إضافة منتج
+    </a>
+@endsection
 
 @section('content')
-<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 space-y-4 sm:space-y-0 text-right">
-    <div>
-        <p class="text-gray-500 font-medium">تحكم في مخزون وأسعار منتجاتك بكل سهولة.</p>
-    </div>
-    <a href="{{ route('admin.products.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all font-bold flex items-center justify-center sm:w-auto">
-        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-        إضافة منتج جديد
-    </a>
-</div>
-
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full text-right whitespace-nowrap">
-            <thead class="bg-gray-50/50 text-gray-400 text-xs uppercase font-bold border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4">المنتج</th>
-                    <th class="px-6 py-4 text-center">القسم</th>
-                    <th class="px-6 py-4 text-center">السعر</th>
-                    <th class="px-6 py-4 text-center">التكلفة</th>
-                    <th class="px-6 py-4 text-center">المخزون</th>
-                    <th class="px-6 py-4 text-center">الحالة</th>
-                    <th class="px-6 py-4 text-left">العمليات</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($products as $product)
-                <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
+<div class="card overflow-hidden">
+    @if($products->isEmpty())
+        <x-admin.empty-state icon="cube" title="لا توجد منتجات حالياً" text="أضف أول منتج ليظهر في المتجر." :action="route('admin.products.create')" action-label="إضافة منتج" />
+    @else
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>القسم</th>
+                        <th>السعر</th>
+                        <th>التكلفة</th>
+                        <th>المخزون</th>
+                        <th>الحالة</th>
+                        <th class="text-left">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($products as $product)
+                    <tr>
+                        <td>
+                            <a href="{{ route('admin.products.show', $product) }}" class="flex items-center gap-3 group min-w-[14rem]">
                                 @if($product->image)
-                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('storage/' . $product->image) }}" alt="">
+                                    <img class="thumb" src="{{ asset('storage/' . $product->image) }}" alt="">
                                 @else
-                                    <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    </div>
+                                    <span class="thumb-empty"><x-admin.icon name="photo" class="w-5 h-5" /></span>
                                 @endif
-                            </div>
-                            <div class="mr-4">
-                                <div class="text-sm font-bold text-gray-900">{{ $product->name }}</div>
-                                <div class="text-xs text-gray-500">{{ $product->category ? $product->category->name : 'بدون قسم' }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-sm font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">{{ $product->category->name ?? 'غير محدد' }}</span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="text-sm font-black text-slate-900">{{ \App\Support\Money::format($product->final_price) }} ج.م</div>
-                        @if($product->discount_price > 0 || $product->discount > 0)
-                            <div class="text-[10px] text-gray-400 line-through">{{ \App\Support\Money::format($product->price) }} ج.م</div>
-                        @endif
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="text-sm font-bold text-gray-700">{{ \App\Support\Money::format($product->cost_price) }} ج.م</div>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="text-sm font-bold {{ $product->stock <= 5 ? 'text-red-500 bg-red-50' : 'text-gray-600 bg-gray-50' }} px-3 py-1 rounded-lg">
-                            {{ $product->stock }} <span class="text-xs opacity-75">متوفر</span>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold {{ $product->status ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
-                            <span class="w-1.5 h-1.5 rounded-full ml-2 {{ $product->status ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400' }}"></span>
-                            {{ $product->status ? 'متاح' : 'متوقف' }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-left">
-                        <div class="flex items-center justify-start space-x-reverse space-x-2">
-                            <a href="{{ route('admin.products.show', $product) }}" class="inline-flex p-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100" title="عرض التفاصيل">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                <span class="font-bold text-navy-900 group-hover:text-brand-700 line-clamp-2">{{ $product->name }}</span>
                             </a>
-                            <a href="{{ route('admin.products.edit', $product) }}" class="inline-flex p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100" title="تعديل">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </a>
-                            <a href="{{ route('admin.products.features.index', $product->id) }}" class="inline-flex p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors border border-transparent hover:border-indigo-100" title="المميزات">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                            </a>
-                            <a href="{{ route('admin.products.images.index', $product->id) }}" class="inline-flex p-2 text-cyan-600 hover:bg-cyan-50 rounded-xl transition-colors border border-transparent hover:border-cyan-100" title="معرض الصور">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            </a>
-                            @if($product->preview_url)
-                            <a href="{{ $product->preview_url }}" target="_blank" class="inline-flex p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors border border-transparent hover:border-rose-100" title="عرض الفيديو">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </a>
+                        </td>
+                        <td><span class="chip whitespace-nowrap">{{ $product->category->name ?? 'بدون قسم' }}</span></td>
+                        <td>
+                            <x-admin.money :value="$product->final_price" />
+                            @if($product->discount_price > 0 || $product->discount > 0)
+                                <div class="text-xs text-slate-400 line-through tabular-nums">{{ \App\Support\Money::format($product->price) }}</div>
                             @endif
-                            <form id="delete-product-{{ $product->id }}" action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" onclick="confirmAction('delete-product-{{ $product->id }}', 'هل أنت متأكد من أرشفة هذا المنتج؟')" 
-                                    class="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100" title="حذف">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                        <div class="flex flex-col items-center">
-                            <svg class="w-12 h-12 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-                            <p class="text-lg font-black mb-2">لا توجد منتجات حالياً</p>
-                            <a href="{{ route('admin.products.create') }}" class="text-blue-600 hover:text-blue-700 font-bold underline transition-colors">أضف أول منتج لمتجرك الآن</a>
-                        </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    @if($products->hasPages())
-    <div class="p-6 bg-gray-50/50 border-t border-gray-100">
-        {{ $products->links() }}
-    </div>
+                        </td>
+                        <td class="text-slate-600 tabular-nums whitespace-nowrap">{{ \App\Support\Money::format($product->cost_price) }} <span class="text-xs text-slate-400">ج.م</span></td>
+                        <td>
+                            @if($product->stock <= 0)
+                                <span class="badge-danger">نفد</span>
+                            @elseif($product->stock <= 5)
+                                <span class="badge-warning">{{ $product->stock }} فقط</span>
+                            @else
+                                <span class="font-bold text-slate-700 tabular-nums">{{ $product->stock }}</span> <span class="text-xs text-slate-400">قطعة</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="{{ $product->status ? 'badge-success' : 'badge-neutral' }} badge-dot">{{ $product->status ? 'متاح' : 'متوقف' }}</span>
+                        </td>
+                        <td>
+                            <div class="flex items-center justify-end gap-0.5">
+                                <a href="{{ route('admin.products.show', $product) }}" class="icon-btn" data-tip="التفاصيل" aria-label="التفاصيل"><x-admin.icon name="eye" class="w-[18px] h-[18px]" /></a>
+                                <a href="{{ route('admin.products.edit', $product) }}" class="icon-btn-primary" data-tip="تعديل" aria-label="تعديل"><x-admin.icon name="edit" class="w-[18px] h-[18px]" /></a>
+                                <a href="{{ route('admin.products.features.index', $product->id) }}" class="icon-btn" data-tip="المميزات" aria-label="المميزات"><x-admin.icon name="list" class="w-[18px] h-[18px]" /></a>
+                                <a href="{{ route('admin.products.images.index', $product->id) }}" class="icon-btn" data-tip="معرض الصور" aria-label="معرض الصور"><x-admin.icon name="photo" class="w-[18px] h-[18px]" /></a>
+                                @if($product->preview_url)
+                                    <a href="{{ $product->preview_url }}" target="_blank" rel="noopener" class="icon-btn" data-tip="الفيديو" aria-label="الفيديو"><x-admin.icon name="play" class="w-[18px] h-[18px]" /></a>
+                                @endif
+                                <form id="delete-product-{{ $product->id }}" action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="button" onclick="confirmAction('delete-product-{{ $product->id }}', 'هل أنت متأكد من أرشفة هذا المنتج؟')" class="icon-btn-danger" data-tip="حذف" aria-label="حذف">
+                                        <x-admin.icon name="trash" class="w-[18px] h-[18px]" />
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @if($products->hasPages())
+            <div class="card-footer">{{ $products->links() }}</div>
+        @endif
     @endif
 </div>
 @endsection
