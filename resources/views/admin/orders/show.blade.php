@@ -1,182 +1,218 @@
 @extends('admin.layouts.app')
 
 @section('title', 'طلب #' . $order->id)
+@section('heading')
+    طلب <bdi dir="ltr">#{{ $order->id }}</bdi>
+@endsection
+@section('back', route('admin.orders.index'))
+@section('back_label', 'الطلبات')
+@section('subtitle')
+    تم الطلب {{ $order->created_at?->format('Y/m/d · H:i') }}
+    <span class="mx-1 text-slate-300">|</span>
+    <x-admin.order-status :status="$order->status" />
+@endsection
+
+@php
+    use App\Support\Money;
+    $statusLabels = ['pending' => 'قيد الانتظار', 'processing' => 'قيد التجهيز', 'shipped' => 'تم الشحن', 'delivered' => 'تم التوصيل', 'cancelled' => 'ملغي'];
+@endphp
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 text-right">
-    <!-- منتجات الطلب -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    {{-- Items and totals --}}
     <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-lg font-bold text-gray-800">منتجات الطلب</h3>
-                <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">
-                    {{ $order->items->count() }} منتجات
-                </span>
+        <section class="card overflow-hidden">
+            <div class="card-header">
+                <h2 class="card-title">منتجات الطلب</h2>
+                <span class="badge-neutral">{{ $order->items->count() }} منتج</span>
             </div>
-            <div class="divide-y divide-gray-100">
+            <ul class="divide-y divide-slate-100">
                 @foreach($order->items as $item)
-                <div class="p-6 flex items-center">
-                    @if($item->product)
-                        <img src="{{ asset('storage/' . $item->product->image) }}" class="w-16 h-16 rounded-lg object-cover bg-gray-50 ml-6">
-                    @else
-                        <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center ml-6 text-gray-400 text-xs">لا يوجد صورة</div>
-                    @endif
-                    <div class="flex-1">
-                        <h4 class="font-bold text-gray-900">{{ $item->product->name ?? 'منتج محذوف' }}</h4>
-                        <p class="text-sm text-gray-500">الكمية: {{ $item->quantity }} × {{ \App\Support\Money::format($item->price) }} ج.م</p>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-bold text-gray-900">{{ \App\Support\Money::format($item->price) }} ج.م</p>
-                    </div>
-                </div>
+                    <li class="flex items-center gap-4 px-5 py-4">
+                        @if($item->product)
+                            <img src="{{ asset('storage/' . $item->product->image) }}" alt="" class="thumb w-14 h-14">
+                        @else
+                            <span class="thumb-empty w-14 h-14"><x-admin.icon name="cube" class="w-6 h-6" /></span>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-navy-900 truncate">{{ $item->product->name ?? 'منتج محذوف' }}</p>
+                            <p class="text-sm text-slate-500 mt-0.5">
+                                <span class="chip tabular-nums">{{ $item->quantity }} ×</span>
+                                {{ Money::format($item->price) }} ج.م
+                            </p>
+                        </div>
+                        {{-- Line total; gift items from an offer are stored with a zero total --}}
+                        @if($item->total === 0)
+                            <span class="badge-success">هدية</span>
+                        @else
+                            <x-admin.money :value="$item->total ?? $item->price * $item->quantity" class="text-base" />
+                        @endif
+                    </li>
                 @endforeach
-            </div>
-            <div class="p-6 bg-gray-50 border-t border-gray-100">
-                <div class="flex justify-between text-sm mb-3 text-gray-600">
-                    <span class="text-lg">الإجمالي الفرعي (قبل الخصم)</span>
-                    <span class="text-lg font-medium">{{ \App\Support\Money::format($order->subtotal) }} ج.م</span>
+            </ul>
+            <dl class="border-t border-slate-100 bg-slate-50/70 px-5 py-4 space-y-2.5 text-sm">
+                <div class="flex justify-between">
+                    <dt class="text-slate-600">الإجمالي الفرعي (قبل الخصم)</dt>
+                    <dd class="font-bold text-slate-800 tabular-nums">{{ Money::format($order->subtotal) }} ج.م</dd>
                 </div>
-                
                 @if($order->discount_amount > 0)
-                <div class="flex justify-between text-sm mb-2 text-green-600 font-bold bg-green-50 p-2 rounded">
-                    <span class="text-lg">خصم الكوبون</span>
-                    <span class="text-lg">{{ \App\Support\Money::format($order->discount_amount) }}- ج.م</span>
-                </div>
+                    <div class="flex justify-between text-emerald-700">
+                        <dt class="font-semibold">خصم الكوبون</dt>
+                        <dd class="font-bold tabular-nums">- {{ Money::format($order->discount_amount) }} ج.م</dd>
+                    </div>
                 @endif
-
                 @if($order->offer_discount > 0)
-                <div class="flex justify-between text-sm mb-2 text-blue-600 font-bold bg-blue-50 p-2 rounded">
-                    <span class="text-lg">خصم العرض</span>
-                    <span class="text-lg">{{ \App\Support\Money::format($order->offer_discount) }}- ج.م</span>
-                </div>
+                    <div class="flex justify-between text-emerald-700">
+                        <dt class="font-semibold">خصم العرض</dt>
+                        <dd class="font-bold tabular-nums">- {{ Money::format($order->offer_discount) }} ج.م</dd>
+                    </div>
                 @endif
-
-                <div class="flex justify-between text-sm mb-4 text-gray-600">
-                    <span class="text-lg">تكلفة الشحن</span>
-                    <span class="text-gray-600 text-lg">{{ \App\Support\Money::format($order->shipping_cost) }} ج.م</span>
+                <div class="flex justify-between">
+                    <dt class="text-slate-600">تكلفة الشحن</dt>
+                    <dd class="font-bold text-slate-800 tabular-nums">{{ Money::format($order->shipping_cost) }} ج.م</dd>
                 </div>
-                
-                <div class="flex justify-between text-xl font-black text-primary border-t border-gray-200 pt-4">
-                    <span>الإجمالي النهائي (بعد الخصم)</span>
-                    <span>{{ \App\Support\Money::format($order->total_amount) }} ج.م</span>
+                <div class="flex justify-between items-baseline pt-3 border-t border-slate-200">
+                    <dt class="text-base font-extrabold text-navy-900">الإجمالي النهائي</dt>
+                    <dd class="text-xl font-extrabold text-navy-900 tabular-nums">{{ Money::format($order->total_amount) }} <span class="text-sm text-slate-400">ج.م</span></dd>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- معلومات العميل والشحن -->
-    <div class="space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                <svg class="w-5 h-5 ml-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                بيانات العميل
-            </h3>
-            <div class="space-y-4">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">الاسم</p>
-                    <p class="font-semibold text-gray-800">{{ $order->user?->name ?? $order->full_name }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">البريد الإلكتروني</p>
-                    <p class="font-semibold text-gray-800">{{ $order->user?->email ?? 'غير متوفر' }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400 uppercase font-bold tracking-wider">رقم الهاتف</p>
-                    <p class="font-semibold text-gray-800">{{ $order->phone_number ?? 'غير متوفر' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                <svg class="w-5 h-5 ml-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                عنوان الشحن
-            </h3>
-            <div class="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                <p class="font-bold text-gray-800 mb-1">{{ $order->full_name }}</p>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                    {{ $order->city }}، {{ $order->state }}<br>
-                    طريقة الشحن: {{ $order->shipping_way }}<br>
-                    رقم الهاتف: {{ $order->phone_number ?? 'غير متوفر' }}
-                </p>
-                <p class="text-sm text-gray-600 leading-relaxed">
-                    عنوان الشحن:{{ $order->address_line }}
-                </p>
-            </div>
-        </div>
+            </dl>
+        </section>
 
         @if($order->offer_snapshot || $order->offer_id)
-        @php
-            // The offer as it was when bought; falls back to the live offer for orders placed before snapshots existed.
-            $snap = $order->offer_snapshot ?? [];
-            $offerName = $snap['name_ar'] ?? $order->offer?->name_ar ?? '—';
-            $offerType = $snap['type'] ?? $order->offer?->type;
-        @endphp
-        <div class="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <svg class="w-5 h-5 ml-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                العرض المشترى
-            </h3>
-            <div class="space-y-3">
-                @if($order->offer?->image)
-                    <img src="{{ asset('storage/' . $order->offer->image) }}" class="w-full h-28 rounded-xl object-cover">
-                @endif
-                <div>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">اسم العرض</p>
-                    <p class="font-bold text-gray-800">{{ $offerName }}</p>
+            @php
+                // The offer as it was when bought; falls back to the live offer for orders placed before snapshots existed.
+                $snap = $order->offer_snapshot ?? [];
+                $offerName = $snap['name_ar'] ?? $order->offer?->name_ar ?? '—';
+                $offerType = $snap['type'] ?? $order->offer?->type;
+            @endphp
+            <section class="card overflow-hidden">
+                <div class="card-header">
+                    <h2 class="card-title flex items-center gap-2"><x-admin.icon name="tag" class="w-5 h-5 text-brand-600" /> العرض المشترى</h2>
+                    <span class="badge-info">{{ \App\Models\Offer::typeLabel($offerType, 'ar') }}</span>
                 </div>
-                <div>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">نوع العرض</p>
-                    <p class="font-bold text-blue-600">{{ \App\Models\Offer::typeLabel($offerType, 'ar') }}</p>
-                </div>
-                @if(!empty($snap))
-                <div>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">التفاصيل وقت الشراء</p>
-                    <p class="text-sm text-gray-700">
-                        @if($snap['type'] === 'bundle')
-                            باقة بسعر {{ \App\Support\Money::format($snap['bundle_price']) }} ج.م:
-                            {{ collect($snap['products'])->map(fn ($p) => $p['quantity'] . ' × ' . $p['name_ar'])->implode(' + ') }}
-                        @else
-                            اشترِ {{ $snap['buy_quantity'] }} واحصل على {{ $snap['get_quantity'] }}
-                            {{ $snap['get_product_id'] ? 'هدية' : ($snap['get_discount_percent'] == 100 ? 'مجاناً' : 'بخصم ' . $snap['get_discount_percent'] . '%') }}
+                <div class="card-body flex flex-col sm:flex-row gap-5">
+                    @if($order->offer?->image)
+                        <img src="{{ asset('storage/' . $order->offer->image) }}" alt="" class="w-full sm:w-40 h-28 rounded-xl object-cover">
+                    @endif
+                    <dl class="flex-1 grid sm:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <dt class="text-xs font-bold text-slate-400">اسم العرض</dt>
+                            <dd class="mt-1 font-bold text-navy-900">{{ $offerName }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-bold text-slate-400">الخصم المحصّل</dt>
+                            <dd class="mt-1 font-extrabold text-emerald-600 text-base">{{ Money::format($order->offer_discount) }} ج.م</dd>
+                        </div>
+                        @if(!empty($snap))
+                            <div class="sm:col-span-2">
+                                <dt class="text-xs font-bold text-slate-400">التفاصيل وقت الشراء</dt>
+                                <dd class="mt-1 text-slate-700 leading-relaxed">
+                                    @if($snap['type'] === 'bundle')
+                                        باقة بسعر {{ Money::format($snap['bundle_price']) }} ج.م:
+                                        {{ collect($snap['products'])->map(fn ($p) => $p['quantity'] . ' × ' . $p['name_ar'])->implode(' + ') }}
+                                    @else
+                                        اشترِ {{ $snap['buy_quantity'] }} واحصل على {{ $snap['get_quantity'] }}
+                                        {{ $snap['get_product_id'] ? 'هدية' : ($snap['get_discount_percent'] == 100 ? 'مجاناً' : 'بخصم ' . $snap['get_discount_percent'] . '%') }}
+                                    @endif
+                                    — عدد المرات: {{ $snap['sets'] }}
+                                </dd>
+                            </div>
                         @endif
-                        — عدد المرات: {{ $snap['sets'] }}
-                    </p>
+                    </dl>
                 </div>
-                @endif
-                <div>
-                    <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">الخصم المحصّل</p>
-                    <p class="font-black text-green-600 text-lg">{{ \App\Support\Money::format($order->offer_discount) }} ج.م</p>
-                </div>
-            </div>
-        </div>
-        </div>
+            </section>
         @endif
+    </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">تحديث الحالة</h3>
-            <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+    {{-- Status, customer, shipping --}}
+    <div class="space-y-6 lg:sticky lg:top-24">
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">حالة الطلب</h2>
+                <x-admin.order-status :status="$order->status" />
+            </div>
+            <form id="order-status-form" action="{{ route('admin.orders.update', $order) }}" method="POST" class="card-body space-y-3" onsubmit="return confirmCancelOnSubmit(this)">
                 @csrf
                 @method('PUT')
-                <select name="status" class="w-full px-4 py-3 rounded-xl border-none font-black text-sm mb-4 focus:ring-0 transition-all outline-none cursor-pointer">
+                <label for="order-status" class="label">تغيير الحالة إلى</label>
+                <select id="order-status" name="status" class="input" data-current="{{ $order->status }}">
                     @foreach(App\Enums\OrderStatus::cases() as $status)
-                        <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>
-                            @switch($status->value)
-                                @case('pending') قيد الانتظار @break
-                                @case('processing') قيد التجهيز @break
-                                @case('shipped') تم الشحن @break
-                                @case('delivered') تم التوصيل @break
-                                @case('cancelled') ملغي @break
-                                @default {{ ucfirst($status->value) }}
-                            @endswitch
-                        </option>
+                        <option value="{{ $status->value }}" {{ $order->status === $status->value ? 'selected' : '' }}>{{ $statusLabels[$status->value] ?? ucfirst($status->value) }}</option>
                     @endforeach
                 </select>
-                <button type="submit" class="w-full bg-slate-900 text-white py-2.5 rounded-lg font-bold hover:bg-slate-800 transition-all shadow-md">
+                <button type="submit" class="btn-dark w-full">
+                    <x-admin.icon name="check" class="w-4 h-4" />
                     حفظ الحالة
                 </button>
+                <p class="hint">إلغاء الطلب يعيد كمياته إلى المخزون.</p>
             </form>
-        </div>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title flex items-center gap-2"><x-admin.icon name="users" class="w-5 h-5 text-slate-400" /> العميل</h2>
+                @if($order->user)
+                    <span class="badge-navy">لديه حساب</span>
+                @else
+                    <span class="badge-neutral">زائر</span>
+                @endif
+            </div>
+            <dl class="card-body space-y-3 text-sm">
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">الاسم</dt>
+                    <dd class="mt-0.5 font-bold text-navy-900">{{ $order->user?->name ?? $order->full_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">رقم الهاتف</dt>
+                    <dd class="mt-0.5 flex items-center justify-between gap-2">
+                        <span class="font-bold text-navy-900" dir="ltr">{{ $order->phone_number ?? 'غير متوفر' }}</span>
+                        @if($order->phone_number)
+                            <a href="tel:{{ $order->phone_number }}" class="btn-secondary btn-sm"><x-admin.icon name="phone" class="w-3.5 h-3.5" /> اتصال</a>
+                        @endif
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">البريد الإلكتروني</dt>
+                    <dd class="mt-0.5 font-semibold text-slate-700 break-all" dir="ltr">{{ $order->user?->email ?? 'غير متوفر' }}</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title flex items-center gap-2"><x-admin.icon name="map-pin" class="w-5 h-5 text-slate-400" /> الشحن</h2>
+            </div>
+            <dl class="card-body space-y-3 text-sm">
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">المستلم</dt>
+                    <dd class="mt-0.5 font-bold text-navy-900">{{ $order->full_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">المدينة / المحافظة</dt>
+                    <dd class="mt-0.5 font-semibold text-slate-700">{{ $order->city }}، {{ $order->state }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">العنوان</dt>
+                    <dd class="mt-0.5 font-semibold text-slate-700 leading-relaxed">{{ $order->address_line }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs font-bold text-slate-400">طريقة الشحن</dt>
+                    <dd class="mt-0.5 font-semibold text-slate-700">{{ $order->shipping_way }}</dd>
+                </div>
+            </dl>
+        </section>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Cancelling puts the items back in stock, so ask before saving that one.
+    function confirmCancelOnSubmit(form) {
+        const select = form.querySelector('select[name=status]');
+        if (select.value !== 'cancelled' || select.dataset.current === 'cancelled') return true;
+        confirmAction(form.id, 'سيتم إلغاء الطلب وإرجاع كمياته إلى المخزون.', 'إلغاء الطلب؟');
+        return false;
+    }
+</script>
+@endpush

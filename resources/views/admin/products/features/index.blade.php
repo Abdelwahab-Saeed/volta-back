@@ -1,85 +1,65 @@
 @extends('admin.layouts.app')
 
 @section('title', 'إدارة مميزات المنتج: ' . $product->name)
+@section('heading', 'مميزات المنتج')
+@section('subtitle', $product->name . ' — النقاط التي تظهر للعميل في صفحة المنتج.')
+@section('back', route('admin.products.index'))
+@section('back_label', 'المنتجات')
+
+@section('actions')
+    <a href="{{ route('admin.products.edit', $product) }}" class="btn-secondary"><x-admin.icon name="edit" class="w-4 h-4" /> تعديل المنتج</a>
+@endsection
 
 @section('content')
-<div class="max-w-4xl mx-auto space-y-8 text-right">
-    <!-- Header -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center space-x-reverse space-x-4">
-            @if($product->image)
-                <img src="{{ asset('storage/' . $product->image) }}" class="w-16 h-16 rounded-xl object-cover border border-gray-100">
-            @endif
-            <div>
-                <h3 class="text-xl font-bold text-gray-800">{{ $product->name }}</h3>
-                <p class="text-gray-500 text-sm">إضافة وتعديل مميزات المنتج التي تظهر للمستخدم.</p>
-            </div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    {{-- Add --}}
+    <section class="card lg:sticky lg:top-24">
+        <div class="card-header">
+            <h2 class="card-title">إضافة ميزة</h2>
         </div>
-        <a href="{{ route('admin.products.index') }}" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl transition-all font-bold text-sm">
-            العودة للمنتجات
-        </a>
-    </div>
+        <form action="{{ route('admin.products.features.store', $product->id) }}" method="POST" class="card-body space-y-4">
+            @csrf
+            @include('admin.partials.translatable-field', ['field' => 'name', 'stacked' => true])
+            <button type="submit" class="btn-primary w-full">
+                <x-admin.icon name="plus" class="w-4 h-4" />
+                إضافة الميزة
+            </button>
+        </form>
+    </section>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Add Feature Form -->
-        <div class="md:col-span-1">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-8">
-                <h4 class="text-lg font-bold text-gray-800 mb-6">إضافة ميزة جديدة</h4>
-                <form action="{{ route('admin.products.features.store', $product->id) }}" method="POST" class="space-y-4">
+    {{-- List --}}
+    <section class="card lg:col-span-2 overflow-hidden">
+        <div class="card-header">
+            <h2 class="card-title">المميزات الحالية</h2>
+            <span class="badge-neutral">{{ $product->features->count() }} ميزة</span>
+        </div>
+
+        @forelse($product->features as $feature)
+            <div class="flex items-start gap-3 px-5 py-4 border-b border-slate-100 last:border-b-0">
+                <form action="{{ route('admin.features.update', $feature->id) }}" method="POST" class="flex-1 grid sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
                     @csrf
-                    @include('admin.partials.translatable-field', ['field' => 'name'])
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-md">
-                        إضافة الميزة
+                    @method('PUT')
+                    <input type="text" name="name_ar" value="{{ $feature->name_ar }}" dir="rtl" required
+                        placeholder="{{ __('admin.name_ar') }}" aria-label="{{ __('admin.name_ar') }}" class="input h-10">
+                    <input type="text" name="name_en" value="{{ $feature->name_en }}" dir="ltr" required
+                        placeholder="{{ __('admin.name_en') }}" aria-label="{{ __('admin.name_en') }}" class="input h-10 text-left">
+                    <button type="submit" class="btn-secondary h-10">
+                        <x-admin.icon name="check" class="w-4 h-4" />
+                        حفظ
+                    </button>
+                </form>
+
+                <form id="delete-feature-{{ $feature->id }}" action="{{ route('admin.features.destroy', $feature->id) }}" method="POST" class="shrink-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" onclick="confirmAction('delete-feature-{{ $feature->id }}', 'هل أنت متأكد من حذف هذه الميزة؟')" class="icon-btn-danger h-10 w-10" data-tip="حذف" aria-label="حذف">
+                        <x-admin.icon name="trash" class="w-[18px] h-[18px]" />
                     </button>
                 </form>
             </div>
-        </div>
-
-        <!-- Features List -->
-        <div class="md:col-span-2">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-50 flex items-center justify-between">
-                    <h4 class="text-lg font-bold text-gray-800">المميزات الحالية</h4>
-                    <span class="bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full">{{ $product->features->count() }} مميزات</span>
-                </div>
-                
-                <div class="divide-y divide-gray-100">
-                    @forelse($product->features as $feature)
-                        <div class="p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
-                            <form action="{{ route('admin.features.update', $feature->id) }}" method="POST" class="flex-grow flex flex-col md:flex-row md:items-center gap-2 ml-4">
-                                @csrf
-                                @method('PUT')
-                                <input type="text" name="name_ar" value="{{ $feature->name_ar }}" dir="rtl" required
-                                    placeholder="{{ __('admin.name_ar') }}" aria-label="{{ __('admin.name_ar') }}"
-                                    class="flex-grow bg-transparent border px-2 focus:ring-0 focus:outline-none text-gray-700 font-medium py-1">
-                                <input type="text" name="name_en" value="{{ $feature->name_en }}" dir="ltr" required
-                                    placeholder="{{ __('admin.name_en') }}" aria-label="{{ __('admin.name_en') }}"
-                                    class="flex-grow bg-transparent border px-2 focus:ring-0 focus:outline-none text-gray-700 font-medium py-1 text-left">
-                                <button type="submit" class="text-blue-500 hover:text-blue-700 text-xs font-bold mr-2">حفظ</button>
-                            </form>
-                            
-                            <form id="delete-feature-{{ $feature->id }}" action="{{ route('admin.features.destroy', $feature->id) }}" method="POST" class="flex-shrink-0">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" onclick="confirmAction('delete-feature-{{ $feature->id }}', 'هل أنت متأكد من حذف هذه الميزة؟')" 
-                                    class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <div class="p-12 text-center text-gray-500">
-                            <svg class="w-12 h-12 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                            <p class="font-bold">لا توجد مميزات مضافة لهذا المنتج بعد.</p>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-    </div>
+        @empty
+            <x-admin.empty-state icon="list" title="لا توجد مميزات بعد" text="أضف أول ميزة من النموذج المجاور." />
+        @endforelse
+    </section>
 </div>
 @endsection

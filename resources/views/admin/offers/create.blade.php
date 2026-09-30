@@ -1,28 +1,19 @@
 @extends('admin.layouts.app')
 
 @section('title', 'إضافة عرض جديد')
+@section('subtitle', 'باقة بسعر ثابت أو "اشترِ X واحصل على Y". العميل يشتري العرض مباشرة من صفحته.')
+@section('back', route('admin.offers.index'))
+@section('back_label', 'العروض')
 
 @section('content')
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-bold text-gray-800">بيانات العرض الجديد</h3>
-            <a href="{{ route('admin.offers.index') }}" class="text-sm text-gray-500 hover:text-gray-700 font-medium flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                رجوع
-            </a>
-        </div>
+<form action="{{ route('admin.offers.store') }}" method="POST" enctype="multipart/form-data" class="max-w-5xl space-y-6">
+    @csrf
 
-        <form action="{{ route('admin.offers.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-8">
-            @csrf
+    @include('admin.offers._form')
 
-            @include('admin.offers._form')
-
-            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <a href="{{ route('admin.offers.index') }}" class="px-6 py-3 border border-gray-200 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition-all">إلغاء</a>
-                <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-sm">حفظ العرض</button>
-            </div>
-        </form>
+    <div class="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-white/90 backdrop-blur border-t border-slate-200 flex items-center gap-3">
+        <button type="submit" class="btn-primary sm:min-w-[10rem]"><x-admin.icon name="check" class="w-4 h-4" /> حفظ العرض</button>
+        <a href="{{ route('admin.offers.index') }}" class="btn-ghost">إلغاء</a>
     </div>
-</div>
+</form>
 @endsection

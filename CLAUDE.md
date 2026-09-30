@@ -25,6 +25,11 @@ Read `docs/offers-and-money.md` for the full history and reasoning behind money,
 - **Meta tracking must never break a request**: all calls go through `MetaService::send()` (timeout + logged failures).
   Tests block real HTTP (`Http::preventStrayRequests()` in `tests/TestCase.php`); fake what you need.
 - The admin dashboard is Arabic-only; API texts follow `Accept-Language` (`SetLocale` middleware).
+- Admin UI: Tailwind Play CDN (no build step). The design system (brand colours, Cairo font, `.card`, `.btn-*`,
+  `.input`, `.data-table`, `.badge-*`...) lives in `resources/views/admin/partials/head.blade.php`; icons are
+  `<x-admin.icon name="..."/>`, plus `<x-admin.order-status>`, `<x-admin.money>`, `<x-admin.empty-state>`.
+  Pages set `title`, optional `subtitle` / `actions` / `back`, and the layout draws the header. Destructive actions
+  go through `confirmAction(formId, message)`. Nothing may live under `public/admin/` (it would shadow `/admin`).
 - Migrations that change data must stop with a clear message on unexpected data instead of guessing,
   and must roll back cleanly. Old money columns are kept as `*_legacy` until a later cleanup migration.
 
