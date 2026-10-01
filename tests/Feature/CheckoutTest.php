@@ -82,7 +82,7 @@ class CheckoutTest extends TestCase
             'address_line' => $address->address_line_1,
             'shipping_way' => 'home',
             'coupon_code' => 'SAVE10',
-            'payment_method' => 'card',
+            'payment_method' => 'cash',
         ]);
 
         $response->assertStatus(201);
@@ -97,7 +97,7 @@ class CheckoutTest extends TestCase
             'shipping_cost' => 3000,
             'total_amount' => 12000,
             'coupon_code' => 'SAVE10',
-            'payment_method' => 'card',
+            'payment_method' => 'cash',
         ]);
         
         $this->assertEquals(1, $coupon->fresh()->times_used);

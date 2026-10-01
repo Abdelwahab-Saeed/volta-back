@@ -2,12 +2,10 @@
 
 namespace App\Enums;
 
+// Only cash on delivery for now; checkout rejects anything else. Add a case here when an online payment is ready.
 enum PaymentMethod: string
 {
     case CASH = 'cash';
-    case CARD = 'card';
-    case WALLET = 'wallet';
-    case VALU = 'valu';
 
     /**
      * Get all enum values as an array

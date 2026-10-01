@@ -11,8 +11,16 @@
 @endsection
 
 @section('content')
+<x-admin.filters :filters="$filters" :total="$coupons->total()" placeholder="كود الكوبون"
+    :selects="[
+        'type' => ['label' => 'النوع', 'options' => ['fixed' => 'مبلغ ثابت', 'percent' => 'نسبة مئوية']],
+        'state' => ['label' => 'الصلاحية', 'options' => ['valid' => 'صالح', 'scheduled' => 'لم يبدأ بعد', 'expired' => 'منتهي', 'exhausted' => 'استُنفد']],
+    ]" />
+
 <div class="card overflow-hidden">
-    @if($coupons->isEmpty())
+    @if($coupons->isEmpty() && $filters)
+        <x-admin.no-results />
+    @elseif($coupons->isEmpty())
         <x-admin.empty-state icon="ticket" title="لا توجد كوبونات حالياً" text="أنشئ كود خصم وشاركه مع عملائك." :action="route('admin.coupons.create')" action-label="إضافة كوبون" />
     @else
         <div class="table-wrap">

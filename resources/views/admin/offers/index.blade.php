@@ -10,9 +10,27 @@
     </a>
 @endsection
 
+@php
+    // Shared by the filter and the status column, so both say the same thing
+    $stateLabels = [
+        'active' => ['label' => 'نشط', 'class' => 'badge-success'],
+        'scheduled' => ['label' => 'لم يبدأ بعد', 'class' => 'badge-info'],
+        'expired' => ['label' => 'منتهي', 'class' => 'badge-warning'],
+        'inactive' => ['label' => 'متوقف', 'class' => 'badge-neutral'],
+    ];
+@endphp
+
 @section('content')
+<x-admin.filters :filters="$filters" :total="$offers->total()" placeholder="اسم العرض بالعربي أو الإنجليزي"
+    :selects="[
+        'type' => ['label' => 'النوع', 'options' => ['bundle' => 'باقة بسعر ثابت', 'buy_x_get_y' => 'اشترِ X احصل Y']],
+        'state' => ['label' => 'الحالة', 'options' => array_map(fn ($state) => $state['label'], $stateLabels)],
+    ]" />
+
 <div class="card overflow-hidden">
-    @if($offers->isEmpty())
+    @if($offers->isEmpty() && $filters)
+        <x-admin.no-results />
+    @elseif($offers->isEmpty())
         <x-admin.empty-state icon="tag" title="لا توجد عروض حالياً" text="أنشئ باقة أو عرض «اشترِ واحصل» ليظهر في صفحة العروض." :action="route('admin.offers.create')" action-label="إضافة عرض" />
     @else
         <div class="table-wrap">
@@ -55,11 +73,8 @@
                         </td>
                         <td><span class="font-bold text-slate-700 tabular-nums">{{ $offer->products_count }}</span> <span class="text-xs text-slate-400">منتج</span></td>
                         <td>
-                            @if($offer->isCurrentlyActive())
-                                <span class="badge-success badge-dot">نشط</span>
-                            @else
-                                <span class="badge-neutral badge-dot">غير نشط</span>
-                            @endif
+                            @php($state = $stateLabels[$offer->state()])
+                            <span class="{{ $state['class'] }} badge-dot">{{ $state['label'] }}</span>
                         </td>
                         <td class="whitespace-nowrap">
                             @if($offer->expires_at)

@@ -102,4 +102,21 @@ class GuestCheckoutTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['items']);
     }
+
+    /**
+     * Only cash on delivery is accepted for now.
+     */
+    public function test_checkout_rejects_payment_methods_other_than_cash(): void
+    {
+        foreach (['card', 'wallet', 'valu'] as $method) {
+            $this->postJson('/api/checkout', [
+                'full_name' => 'Guest User',
+                'phone_number' => '1234567890',
+                'city' => 'Cairo',
+                'state' => 'Cairo',
+                'shipping_way' => 'home',
+                'payment_method' => $method,
+            ])->assertStatus(422)->assertJsonValidationErrors(['payment_method']);
+        }
+    }
 }
