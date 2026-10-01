@@ -23,6 +23,9 @@ class Offer extends Model
 
     public const TYPES = ['bundle', 'buy_x_get_y'];
 
+    // What the admin list shows and filters by (see state() and scopeInState()).
+    public const STATES = ['active', 'scheduled', 'expired', 'inactive'];
+
     protected array $translatable = ['name', 'description'];
 
     protected $fillable = [
@@ -89,6 +92,22 @@ class Offer extends Model
             });
     }
 
+    /**
+     * Offers in one of STATES. Matches state(): switched off wins, then expired, then not started yet.
+     */
+    public function scopeInState($query, string $state)
+    {
+        return match ($state) {
+            'active'    => $query->active(),
+            'scheduled' => $query->where('is_active', true)
+                ->where('starts_at', '>', now())
+                ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now())),
+            'expired'   => $query->where('is_active', true)->where('expires_at', '<=', now()),
+            'inactive'  => $query->where('is_active', false),
+            default     => $query,
+        };
+    }
+
     // ──────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────
@@ -99,6 +118,17 @@ class Offer extends Model
         if ($this->starts_at && now()->lt($this->starts_at)) return false;
         if ($this->expires_at && now()->gt($this->expires_at)) return false;
         return true;
+    }
+
+    /**
+     * One of STATES, for the admin list.
+     */
+    public function state(): string
+    {
+        if (!$this->is_active) return 'inactive';
+        if ($this->expires_at && $this->expires_at->lte(now())) return 'expired';
+        if ($this->starts_at && $this->starts_at->gt(now())) return 'scheduled';
+        return 'active';
     }
 
     /**

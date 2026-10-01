@@ -13,6 +13,11 @@ class Coupon extends Model
 {
     use HasFactory;
 
+    public const TYPES = ['fixed', 'percent'];
+
+    // What the admin list filters by (see state() and scopeInState()).
+    public const STATES = ['valid', 'scheduled', 'expired', 'exhausted'];
+
     protected $fillable = [
         'code',
         'type',
@@ -33,6 +38,36 @@ class Coupon extends Model
         'value' => FixedOrPercentCast::class, // piasters for fixed, whole percent for percent
         'min_order_amount' => MoneyCast::class,
     ];
+
+    /**
+     * Coupons in one of STATES, using the same checks as isValid() (minus the order minimum).
+     * Expired wins, then used up, then not started yet. The whereNotNull checks keep whereNot() true for NULL columns.
+     */
+    public function scopeInState($query, string $state)
+    {
+        $expired = fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<', now());
+        $exhausted = fn ($q) => $q->whereNotNull('max_uses')->where('max_uses', '>', 0)->whereColumn('times_used', '>=', 'max_uses');
+        $scheduled = fn ($q) => $q->whereNotNull('starts_at')->where('starts_at', '>', now());
+
+        return match ($state) {
+            'expired'   => $query->where($expired),
+            'exhausted' => $query->whereNot($expired)->where($exhausted),
+            'scheduled' => $query->whereNot($expired)->whereNot($exhausted)->where($scheduled),
+            'valid'     => $query->whereNot($expired)->whereNot($exhausted)->whereNot($scheduled),
+            default     => $query,
+        };
+    }
+
+    /**
+     * One of STATES, for the admin list.
+     */
+    public function state(): string
+    {
+        if ($this->expires_at && $this->expires_at->isPast()) return 'expired';
+        if ($this->max_uses && $this->times_used >= $this->max_uses) return 'exhausted';
+        if ($this->starts_at && $this->starts_at->isFuture()) return 'scheduled';
+        return 'valid';
+    }
 
     public function isValid($totalAmount)
     {

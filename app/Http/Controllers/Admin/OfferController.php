@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Offer;
 use App\Models\Product;
@@ -14,13 +15,28 @@ use Illuminate\Validation\ValidationException;
 
 class OfferController extends Controller
 {
+    use ReadsListFilters;
+
     // Admins enter offer dates in Egypt local time; they are stored in UTC (the app timezone).
     public const ADMIN_TIMEZONE = 'Africa/Cairo';
 
-    public function index()
+    public function index(Request $request)
     {
-        $offers = Offer::withCount('products')->latest()->paginate(15);
-        return view('admin.offers.index', compact('offers'));
+        $filters = $this->listFilters($request, [
+            'q' => 'search',
+            'type' => Offer::TYPES,
+            'state' => Offer::STATES,
+        ]);
+
+        $offers = Offer::withCount('products')
+            ->when($filters['q'] ?? null, fn ($query, $term) => $query->whereTranslationLike(['name'], $term))
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->where('type', $type))
+            ->when($filters['state'] ?? null, fn ($query, $state) => $query->inState($state))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.offers.index', compact('offers', 'filters'));
     }
 
     public function create()

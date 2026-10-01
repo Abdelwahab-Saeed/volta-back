@@ -11,8 +11,13 @@
 @endsection
 
 @section('content')
+<x-admin.filters :filters="$filters" :total="$categories->total()" placeholder="اسم القسم بالعربي أو الإنجليزي"
+    :selects="['status' => ['label' => 'الحالة', 'options' => ['active' => 'نشط', 'inactive' => 'غير نشط']]]" />
+
 <div class="card overflow-hidden">
-    @if($categories->isEmpty())
+    @if($categories->isEmpty() && $filters)
+        <x-admin.no-results />
+    @elseif($categories->isEmpty())
         <x-admin.empty-state icon="folder" title="لا توجد أقسام حالياً" text="أضف أول قسم لتنظيم منتجات المتجر." :action="route('admin.categories.create')" action-label="إضافة قسم" />
     @else
         <div class="table-wrap">

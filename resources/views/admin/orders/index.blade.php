@@ -22,8 +22,17 @@
 @endphp
 
 @section('content')
+<x-admin.filters :filters="$filters" :total="$orders->total()" dates
+    placeholder="رقم الطلب، اسم العميل، الهاتف أو البريد"
+    :selects="[
+        'status' => ['label' => 'الحالة', 'options' => $statusLabels],
+        'discount' => ['label' => 'الخصم', 'options' => ['offer' => 'بعرض', 'coupon' => 'بكوبون', 'none' => 'بدون خصم']],
+    ]" />
+
 <div class="card overflow-hidden">
-    @if($orders->isEmpty())
+    @if($orders->isEmpty() && $filters)
+        <x-admin.no-results />
+    @elseif($orders->isEmpty())
         <x-admin.empty-state icon="orders" title="لا توجد طلبات حالياً" text="ستظهر طلبات العملاء هنا فور وصولها." />
     @else
         <div class="table-wrap">

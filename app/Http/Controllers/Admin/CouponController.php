@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use Illuminate\Http\Request;
@@ -9,10 +10,25 @@ use Illuminate\Validation\Rule;
 
 class CouponController extends Controller
 {
-    public function index()
+    use ReadsListFilters;
+
+    public function index(Request $request)
     {
-        $coupons = Coupon::latest()->paginate(15);
-        return view('admin.coupons.index', compact('coupons'));
+        $filters = $this->listFilters($request, [
+            'q' => 'search',
+            'type' => Coupon::TYPES,
+            'state' => Coupon::STATES,
+        ]);
+
+        $coupons = Coupon::query()
+            ->when($filters['q'] ?? null, fn ($query, $term) => $query->where('code', 'like', "%{$term}%"))
+            ->when($filters['type'] ?? null, fn ($query, $type) => $query->where('type', $type))
+            ->when($filters['state'] ?? null, fn ($query, $state) => $query->inState($state))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.coupons.index', compact('coupons', 'filters'));
     }
 
     public function create()

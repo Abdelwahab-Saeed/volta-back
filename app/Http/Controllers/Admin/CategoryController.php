@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -9,13 +10,24 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
-    public function index()
+    use ReadsListFilters;
+
+    public function index(Request $request)
     {
+        $filters = $this->listFilters($request, [
+            'q' => 'search',
+            'status' => ['active', 'inactive'],
+        ]);
+
         $categories = Category::withCount('products')
+            ->when($filters['q'] ?? null, fn ($query, $term) => $query->whereTranslationLike(['name'], $term))
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status === 'active'))
             ->orderByRaw('category_order IS NULL, category_order ASC')
             ->latest()
-            ->paginate(15);
-        return view('admin.categories.index', compact('categories'));
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.categories.index', compact('categories', 'filters'));
     }
 
     public function create()

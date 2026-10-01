@@ -11,8 +11,17 @@
 @endsection
 
 @section('content')
+<x-admin.filters :filters="$filters" :total="$products->total()" placeholder="اسم المنتج بالعربي أو الإنجليزي"
+    :selects="[
+        'category' => ['label' => 'القسم', 'options' => $categories],
+        'status' => ['label' => 'الحالة', 'options' => ['active' => 'متاح', 'inactive' => 'متوقف']],
+        'stock' => ['label' => 'المخزون', 'options' => ['in' => 'متوفر', 'low' => 'قارب على النفاد', 'out' => 'نفد']],
+    ]" />
+
 <div class="card overflow-hidden">
-    @if($products->isEmpty())
+    @if($products->isEmpty() && $filters)
+        <x-admin.no-results />
+    @elseif($products->isEmpty())
         <x-admin.empty-state icon="cube" title="لا توجد منتجات حالياً" text="أضف أول منتج ليظهر في المتجر." :action="route('admin.products.create')" action-label="إضافة منتج" />
     @else
         <div class="table-wrap">
@@ -52,7 +61,7 @@
                         <td>
                             @if($product->stock <= 0)
                                 <span class="badge-danger">نفد</span>
-                            @elseif($product->stock <= 5)
+                            @elseif($product->stock <= \App\Http\Controllers\Admin\ProductController::LOW_STOCK)
                                 <span class="badge-warning">{{ $product->stock }} فقط</span>
                             @else
                                 <span class="font-bold text-slate-700 tabular-nums">{{ $product->stock }}</span> <span class="text-xs text-slate-400">قطعة</span>

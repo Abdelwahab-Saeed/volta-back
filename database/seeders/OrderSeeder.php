@@ -118,10 +118,7 @@ class OrderSeeder extends Seeder
                 'shipping_way' => fake()->randomElement(['home', 'home', 'home', 'office', 'pickup']),
                 'address_line' => $address?->address_line_1 ?? MockData::street(),
                 'status' => $status->value,
-                'payment_method' => fake()->randomElement([
-                    PaymentMethod::CASH, PaymentMethod::CASH, PaymentMethod::CASH,
-                    PaymentMethod::CARD, PaymentMethod::WALLET, PaymentMethod::VALU,
-                ])->value,
+                'payment_method' => PaymentMethod::CASH->value,
                 'notes' => fake()->boolean(30) ? Arr::random(self::NOTES) : null,
                 'subtotal' => $subtotal,
                 'shipping_cost' => $shippingCost,
