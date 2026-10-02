@@ -22,6 +22,13 @@ Read `docs/offers-and-money.md` for the full history and reasoning behind money,
   A new offer type = backend only (pricing in `Offer`/`OfferPricing`, text in `lang/*/offers.php`, admin form).
 - Checkout guards: `expected_total` (409 when prices changed) and `Idempotency-Key` (a retry returns the same order).
 - Guest cart joins the account cart on login via `POST /api/cart/merge` (larger quantity wins, so repeats are safe).
+- **The storefront only shows and sells visible products**: `Product::visible()` in queries, `isSellable()` on a loaded
+  model (switched on, not deleted, in a switched-on category that is not deleted). Every public product, wishlist,
+  comparison, cart and checkout path goes through them; cart responses use `Cart::loadAvailableItems()`.
+- **Nothing is deleted for real**: every model uses `SoftDeletes`, except the cart, wishlist and comparison rows
+  (a customer's current picks). A delete keeps the row's uploaded files. Relations an order reads (`Order::user()`,
+  `Order::offer()`, `OrderItem::product()`) use `withTrashed()`. `coupons.code` and `users.email` are unique only among
+  rows that are not deleted, checked by validation (`Rule::unique(...)->withoutTrashed()`), not by the database.
 - **Meta tracking must never break a request**: all calls go through `MetaService::send()` (timeout + logged failures).
   Tests block real HTTP (`Http::preventStrayRequests()` in `tests/TestCase.php`); fake what you need.
 - The admin dashboard is Arabic-only; API texts follow `Accept-Language` (`SetLocale` middleware).

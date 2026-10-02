@@ -38,7 +38,7 @@ class OrderController extends Controller
             })
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($filters['discount'] ?? null, fn ($query, $discount) => match ($discount) {
-                // offer_id is cleared if the offer is deleted; the snapshot stays
+                // Orders from before offer_id existed on the order only have the snapshot
                 'offer' => $query->where(fn ($q) => $q->whereNotNull('offer_id')->orWhereNotNull('offer_snapshot')),
                 'coupon' => $query->whereNotNull('coupon_code'),
                 'none' => $query->whereNull('offer_id')->whereNull('offer_snapshot')->whereNull('coupon_code'),

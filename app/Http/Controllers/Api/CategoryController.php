@@ -16,7 +16,7 @@ class CategoryController extends Controller
     // GET ALL
     public function index()
     {
-        $categories = Category::orderByRaw('category_order IS NULL, category_order ASC')->latest()->get();
+        $categories = Category::where('status', true)->orderByRaw('category_order IS NULL, category_order ASC')->latest()->get();
         return $this->successResponse(\App\Http\Resources\CategoryResource::collection($categories), __('api.categories_fetched'));
     }
 
@@ -44,6 +44,10 @@ class CategoryController extends Controller
     // SHOW
     public function show(Category $category)
     {
+        if (!$category->status) {
+            return $this->errorResponse(__('api.category_unavailable'), 404);
+        }
+
         return $this->successResponse(new \App\Http\Resources\CategoryResource($category), __('api.category_fetched'));
     }
 

@@ -50,7 +50,7 @@ class CertificateController extends Controller
 
     public function destroy(Certificate $certificate)
     {
-        $this->deleteUpload($certificate->image);
+        // Soft delete: the image stays with the row
         $certificate->delete();
 
         return redirect()->route('admin.certificates.index')->with('success', 'تم حذف الشهادة بنجاح.');

@@ -53,16 +53,31 @@ class CheckoutController extends Controller
         $cartItems = collect();
 
         if ($user) {
-            $cart = $user->cart()->with('items.product')->first();
+            // Only what the cart page shows: lines of hidden or deleted products are neither shown nor charged
+            $cart = $user->cart?->loadAvailableItems();
 
             if (!$cart || $cart->items->isEmpty()) {
                 return $this->errorResponse('السلة فارغة حالياً', 400);
             }
             $cartItems = $cart->items;
         } else {
-            // For guest, hydrate items from request
+            // For guest, hydrate items from request. The guest cart lives in the browser, so it can still hold
+            // products that were hidden or deleted since: refuse the order and say which ones.
+            $requestedIds = collect($request->items)->pluck('product_id');
+            $products = Product::visible()->whereIn('id', $requestedIds)->get()->keyBy('id');
+            $unavailableIds = $requestedIds->unique()->reject(fn ($id) => $products->has($id))->values();
+
+            if ($unavailableIds->isNotEmpty()) {
+                $names = Product::withTrashed()->whereIn('id', $unavailableIds)->get()->pluck('name')->implode(', ');
+
+                return $this->errorResponse(__('api.products_unavailable', ['names' => $names]), 422, [
+                    'code' => 'product_unavailable',
+                    'product_ids' => $unavailableIds->map(fn ($id) => (int) $id)->all(),
+                ]);
+            }
+
             foreach ($request->items as $itemData) {
-                $product = Product::find($itemData['product_id']);
+                $product = $products[$itemData['product_id']];
 
                 $cartItem = new \stdClass();
                 $cartItem->product = $product;

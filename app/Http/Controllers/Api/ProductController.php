@@ -23,7 +23,8 @@ class ProductController extends Controller
     // GET PRODUCTS (public for users)
     public function index(Request $request)
     {
-        $query = Product::query();
+        // Hidden products (switched off, or in a switched-off or deleted category) never reach the storefront
+        $query = Product::visible();
 
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
@@ -71,6 +72,10 @@ class ProductController extends Controller
     // SHOW
     public function show(Product $product)
     {
+        if (!$product->isSellable()) {
+            return $this->errorResponse(__('api.product_unavailable'), 404);
+        }
+
         $product->load(['category', 'features', 'extraImages']);
 
         $this->metaService->sendViewContent($product);
@@ -102,7 +107,8 @@ class ProductController extends Controller
     {
         $limit = $request->get('limit', 5);
 
-        $products = Product::with(['category', 'features', 'extraImages'])
+        $products = Product::visible()
+            ->with(['category', 'features', 'extraImages'])
             ->withCount(['orderItems as total_sold' => function ($query) {
                 $query->select(\Illuminate\Support\Facades\DB::raw('sum(quantity)'));
             }])

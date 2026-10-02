@@ -89,7 +89,7 @@ class OfferController extends Controller
     private function activeOffers()
     {
         return Offer::active()
-            ->with(['products' => fn ($q) => $q->withTrashed(), 'freeProduct'])
+            ->with(['products' => fn ($q) => $q->withTrashed()->with('category'), 'freeProduct'])
             ->orderByDesc('created_at')
             ->orderByDesc('id');
     }

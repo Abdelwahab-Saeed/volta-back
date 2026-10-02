@@ -26,13 +26,13 @@ class CartController extends Controller
 
     public function index()
     {
-        $cart = Auth::user()->cart()->with('items.product')->first();
+        $cart = Auth::user()->cart;
 
         if (!$cart) {
             return $this->successResponse(['items' => []], __('api.cart_empty'));
         }
 
-        return $this->successResponse($cart, __('api.cart_fetched'));
+        return $this->successResponse($cart->loadAvailableItems(), __('api.cart_fetched'));
     }
 
     public function store(Request $request)
@@ -42,13 +42,17 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
+        // Hidden and deleted products cannot be added
+        $product = Product::visible()->find($request->product_id);
+        if (!$product) {
+            return $this->errorResponse(__('api.product_unavailable'), 422);
+        }
+
         $user = Auth::user();
         $cart = $user->cart()->firstOrCreate(['user_id' => $user->id]);
 
         $cartItem = $cart->items()->where('product_id', $request->product_id)->first();
 
-        $product = Product::find($request->product_id);
-        
         if ($cartItem) {
             $newQuantity = $cartItem->quantity + $request->quantity;
             $cartItem->quantity = $newQuantity;
@@ -71,13 +75,13 @@ class CartController extends Controller
 
         $this->metaService->sendAddToCart($product, $user);
 
-        return $this->successResponse($cart->load('items.product'), __('api.cart_item_added'));
+        return $this->successResponse($cart->loadAvailableItems(), __('api.cart_item_added'));
     }
 
     /**
      * Merge the cart a customer built as a guest (kept in the browser) into their account cart, right after login.
      * A product in both carts keeps the larger quantity instead of adding them up, so a retried or repeated
-     * merge request never doubles quantities. Deleted or hidden products are skipped.
+     * merge request never doubles quantities. Products the storefront no longer shows are skipped.
      * url: POST api/cart/merge  { items: [{ product_id, quantity }] }
      */
     public function merge(Request $request)
@@ -96,7 +100,7 @@ class CartController extends Controller
             ->groupBy('product_id')
             ->map(fn ($lines) => (int) collect($lines)->max('quantity'));
 
-        $products = Product::where('status', true)->whereIn('id', $wanted->keys())->get()->keyBy('id');
+        $products = Product::visible()->whereIn('id', $wanted->keys())->get()->keyBy('id');
         $existing = $cart->items()->whereIn('product_id', $products->keys())->get()->keyBy('product_id');
 
         foreach ($products as $productId => $product) {
@@ -109,7 +113,7 @@ class CartController extends Controller
             );
         }
 
-        return $this->successResponse($cart->load('items.product'), __('api.cart_merged'));
+        return $this->successResponse($cart->loadAvailableItems(), __('api.cart_merged'));
     }
 
     public function update(Request $request, $cartItemId)
@@ -132,13 +136,17 @@ class CartController extends Controller
         }
 
         $product = $cartItem->product;
+        if (!$product?->isSellable()) {
+            return $this->errorResponse(__('api.product_unavailable'), 422);
+        }
+
         $calculation = $this->priceCalculator->calculate($product, $request->quantity);
 
         $cartItem->quantity = $request->quantity;
         $cartItem->price_snapshot = $calculation['final_unit_price'];
         $cartItem->save();
 
-        return $this->successResponse($cart->load('items.product'), __('api.cart_item_updated'));
+        return $this->successResponse($cart->loadAvailableItems(), __('api.cart_item_updated'));
     }
 
     public function destroy($cartItemId)
@@ -158,7 +166,7 @@ class CartController extends Controller
 
         $cartItem->delete();
 
-        return $this->successResponse($cart->load('items.product'), __('api.cart_item_removed'));
+        return $this->successResponse($cart->loadAvailableItems(), __('api.cart_item_removed'));
     }
 
     public function clear()

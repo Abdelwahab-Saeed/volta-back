@@ -86,9 +86,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        if ($post->image) {
-            Storage::disk('public')->delete($post->image);
-        }
+        // Soft delete: the image stays with the row
         $post->delete();
 
         return redirect()->route('admin.posts.index')->with('success', 'تم حذف المقال بنجاح.');

@@ -53,6 +53,24 @@ class Product extends Model
     }
 
     /**
+     * Products the storefront may show and sell: switched on, in a switched-on category.
+     * Deleted products and deleted categories are already left out by soft deletes.
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('status', true)
+            ->whereHas('category', fn ($category) => $category->where('status', true));
+    }
+
+    /**
+     * The same rule as scopeVisible(), for a product already loaded (possibly with trashed ones).
+     */
+    public function isSellable(): bool
+    {
+        return !$this->trashed() && (bool) $this->status && (bool) $this->category?->status;
+    }
+
+    /**
      * Selling price in piasters.
      */
     public function getFinalPriceAttribute(): ?int

@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Partner extends Model
 {
-    use HasTranslations;
+    use HasTranslations, SoftDeletes;
 
     public const TYPE_PARTNER = 'partner';
     public const TYPE_CLIENT = 'client';

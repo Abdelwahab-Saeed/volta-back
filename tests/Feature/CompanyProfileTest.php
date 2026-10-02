@@ -105,9 +105,11 @@ class CompanyProfileTest extends TestCase
         Storage::disk('public')->assertMissing($oldLogo);
         Storage::disk('public')->assertExists($partner->logo);
 
+        // Deleting is a soft delete: gone from the lists, but the row and its logo are kept.
         $this->actingAs($admin)->delete(route('admin.partners.destroy', $partner))->assertRedirect();
-        $this->assertDatabaseCount('partners', 0);
-        Storage::disk('public')->assertMissing($partner->logo);
+        $this->assertSoftDeleted($partner);
+        $this->assertSame(0, Partner::count());
+        Storage::disk('public')->assertExists($partner->logo);
     }
 
     public function test_partner_needs_a_name_in_one_language_and_a_logo(): void

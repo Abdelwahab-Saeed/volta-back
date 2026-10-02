@@ -94,9 +94,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        if ($post->image) {
-            Storage::disk('public')->delete($post->image);
-        }
+        // Soft delete: the image stays with the row
         $post->delete();
 
         return $this->successResponse(null, __('api.post_deleted'));

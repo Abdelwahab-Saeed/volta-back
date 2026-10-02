@@ -17,7 +17,7 @@ class ComparisonController extends Controller
      */
     public function index()
     {
-        $products = Auth::user()->comparisonList()->with('category')->get();
+        $products = Auth::user()->comparisonList()->visible()->with('category')->get();
 
         return $this->successResponse($products, 'تم جلب قائمة المقارنة بنجاح');
     }
@@ -33,14 +33,18 @@ class ComparisonController extends Controller
         ]);
 
         $user = Auth::user();
-        
+
+        if (!\App\Models\Product::visible()->whereKey($request->product_id)->exists()) {
+            return $this->errorResponse(__('api.product_unavailable'), 422);
+        }
+
         // Check if the product is already in the comparison list
         if ($user->comparisonList()->where('product_id', $request->product_id)->exists()) {
             return $this->errorResponse('المنتج موجود بالفعل في قائمة المقارنة', 422);
         }
 
-        // Check if the limit of 2 is reached
-        if ($user->comparisonList()->count() >= 2) {
+        // Check if the limit of 2 is reached (hidden products do not take a slot: the customer cannot see them)
+        if ($user->comparisonList()->visible()->count() >= 2) {
             return $this->errorResponse('عذراً، يمكنك إضافة منتجين فقط للمقارنة', 422);
         }
 

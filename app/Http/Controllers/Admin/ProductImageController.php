@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductImageController extends Controller
 {
@@ -38,9 +37,7 @@ class ProductImageController extends Controller
 
     public function destroy(ProductImage $image)
     {
-        if ($image->image) {
-            Storage::disk('public')->delete($image->image);
-        }
+        // Soft delete: the file stays with the row
         $image->delete();
         return redirect()->back()->with('success', 'تم حذف الصورة بنجاح.');
     }

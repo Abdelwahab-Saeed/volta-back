@@ -93,9 +93,7 @@ class OfferController extends Controller
 
     public function destroy(Offer $offer)
     {
-        if ($offer->image) {
-            Storage::disk('public')->delete($offer->image);
-        }
+        // Soft delete: the image stays with the row
         $offer->delete();
         return redirect()->route('admin.offers.index')->with('success', 'تم حذف العرض بنجاح.');
     }

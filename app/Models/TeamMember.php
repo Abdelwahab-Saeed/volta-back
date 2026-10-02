@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TeamMember extends Model
 {
-    use HasTranslations;
+    use HasTranslations, SoftDeletes;
 
     protected $fillable = [
         'name_ar',
