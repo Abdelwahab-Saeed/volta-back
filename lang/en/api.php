@@ -3,6 +3,9 @@
 return [
     'products_fetched' => 'Products fetched successfully',
     'product_fetched' => 'Product data fetched successfully',
+    'product_unavailable' => 'This product is not available right now',
+    'products_unavailable' => 'Some products are no longer available: :names',
+    'category_unavailable' => 'This category is not available right now',
     'offers_fetched' => 'Offers fetched successfully',
     'offer_fetched' => 'Offer details fetched successfully',
     'offer_quoted' => 'Offer priced successfully',

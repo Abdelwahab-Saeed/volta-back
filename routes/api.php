@@ -96,13 +96,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // COUPONS
     Route::post('/coupons/apply', [App\Http\Controllers\Api\CouponController::class, 'apply']);
-    // Admin routes for coupons could be protected by admin middleware, but for now putting here or under 'admin' group if it existed
-    Route::apiResource('coupons', App\Http\Controllers\Api\CouponController::class);
 
     // ORDERS
     Route::get('/orders', [App\Http\Controllers\Api\OrderController::class, 'index']);
     Route::get('/orders/{order}', [App\Http\Controllers\Api\OrderController::class, 'show']);
-    Route::patch('/orders/{order}/status', [App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
     Route::post('/orders/{order}/cancel', [App\Http\Controllers\Api\OrderController::class, 'cancel']);
 
     // WISHLIST
@@ -114,9 +111,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/comparison', [App\Http\Controllers\Api\ComparisonController::class, 'store']);
     Route::delete('/comparison/{product}', [App\Http\Controllers\Api\ComparisonController::class, 'destroy']);
 
-    // ADMIN ORDERS
+    // ADMIN ORDERS & COUPONS (customers only apply coupons and cancel their own pending orders)
     Route::middleware('admin')->group(function () {
         Route::get('/admin/orders', [App\Http\Controllers\Api\OrderController::class, 'all']);
+        Route::patch('/orders/{order}/status', [App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
+        Route::apiResource('coupons', App\Http\Controllers\Api\CouponController::class);
     });
 
 });

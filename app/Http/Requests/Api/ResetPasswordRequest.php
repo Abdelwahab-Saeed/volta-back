@@ -2,6 +2,7 @@
 namespace App\Http\Requests\Api;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class ResetPasswordRequest extends FormRequest
@@ -15,7 +16,7 @@ class ResetPasswordRequest extends FormRequest
     {
         return [
             'token' => 'required|string',
-            'email' => 'required|email|exists:users,email',
+            'email' => ['required', 'email', Rule::exists('users', 'email')->withoutTrashed()],
             'password' => [
                 'required',
                 'confirmed',

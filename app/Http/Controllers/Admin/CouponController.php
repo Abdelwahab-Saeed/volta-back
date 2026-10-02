@@ -39,7 +39,8 @@ class CouponController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code' => 'required|string|unique:coupons,code',
+            // A deleted coupon's code can be used again
+            'code' => ['required', 'string', Rule::unique('coupons', 'code')->withoutTrashed()],
             'type' => 'required|in:fixed,percent',
             'value' => ['required', 'numeric', 'min:0', Rule::when($request->input('type') === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',
@@ -66,7 +67,7 @@ class CouponController extends Controller
     public function update(Request $request, Coupon $coupon)
     {
         $request->validate([
-            'code' => 'required|string|unique:coupons,code,' . $coupon->id,
+            'code' => ['required', 'string', Rule::unique('coupons', 'code')->ignore($coupon->id)->withoutTrashed()],
             'type' => 'required|in:fixed,percent',
             'value' => ['required', 'numeric', 'min:0', Rule::when($request->input('type') === 'percent', ['integer', 'max:100'])],
             'min_order_amount' => 'nullable|numeric|min:0',

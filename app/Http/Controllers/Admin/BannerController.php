@@ -81,9 +81,7 @@ class BannerController extends Controller
 
     public function destroy(Banner $banner)
     {
-        if ($banner->image) {
-            Storage::disk('public')->delete($banner->image);
-        }
+        // Soft delete: the image stays with the row
         $banner->delete();
 
         return redirect()->route('admin.banners.index')->with('success', 'تم حذف البانر بنجاح.');

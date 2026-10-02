@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -25,7 +26,8 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            // A deleted account's email can be used again
+            'email' => ['required', 'email', Rule::unique('users', 'email')->withoutTrashed()],
             'password' => 'required|min:8|confirmed',
             'role' => 'required|in:user,admin',
             'phone_number' => 'nullable|string|max:20',
@@ -53,7 +55,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)->withoutTrashed()],
             'password' => 'nullable|min:8',
             'role' => 'required|in:user,admin',
             'phone_number' => 'nullable|string|max:20',

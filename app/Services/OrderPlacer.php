@@ -29,7 +29,8 @@ class OrderPlacer
      */
     public function findByIdempotencyKey(?string $key): ?Order
     {
-        return $key ? Order::where('idempotency_key', $key)->first() : null;
+        // The key stays unique even after an order is deleted, so a deleted order still answers its retry.
+        return $key ? Order::withTrashed()->where('idempotency_key', $key)->first() : null;
     }
 
     /**

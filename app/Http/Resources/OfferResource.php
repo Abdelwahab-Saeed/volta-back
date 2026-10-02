@@ -58,7 +58,7 @@ class OfferResource extends JsonResource
                 'price' => Money::toPounds($p->final_price),
                 'original_price' => Money::toPounds($p->price),
                 'quantity' => (int) $p->pivot->quantity, // units per bundle set
-                'available' => !$p->trashed() && (bool) $p->status,
+                'available' => $p->isSellable(),
                 'offer' => $requiresChoice ? $this->prices($productQuotes[$p->id]) + [
                     'available' => $productQuotes[$p->id]['purchasable'],
                 ] : null,

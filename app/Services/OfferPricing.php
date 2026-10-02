@@ -39,7 +39,7 @@ class OfferPricing
         }
 
         // Deleted products are loaded too, so a bundle never silently loses one of its products.
-        $offerProducts = $offer->products()->withTrashed()->get();
+        $offerProducts = $offer->products()->withTrashed()->with('category')->get();
         $offer->setRelation('products', $offerProducts);
 
         $issues = [];
@@ -58,7 +58,7 @@ class OfferPricing
         }
 
         foreach ($lines as $line) {
-            if (!$this->isSellable($line->product)) {
+            if (!$line->product->isSellable()) {
                 $issues[] = ['code' => 'product_unavailable', 'message' => __('offers.issues.product_unavailable', ['name' => $line->product->name])];
             }
         }
@@ -68,7 +68,7 @@ class OfferPricing
 
         $gifts = collect($result['free_items'])->map(function (array $free) use (&$issues) {
             $gift = Product::withTrashed()->find($free['product_id']);
-            if (!$gift || !$this->isSellable($gift)) {
+            if (!$gift || !$gift->isSellable()) {
                 $issues[] = ['code' => 'gift_unavailable', 'message' => __('offers.issues.gift_unavailable')];
             }
 
@@ -126,11 +126,6 @@ class OfferPricing
         }
 
         return $product;
-    }
-
-    private function isSellable(Product $product): bool
-    {
-        return !$product->trashed() && (bool) $product->status;
     }
 
     /**

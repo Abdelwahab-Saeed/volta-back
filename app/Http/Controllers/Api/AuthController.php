@@ -27,7 +27,8 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            // A deleted account's email can register again (as a new, empty account)
+            'email' => ['required', 'email', Rule::unique('users', 'email')->withoutTrashed()],
             'password' => 'required|min:8|confirmed',
             'phone_number' => 'required|string|max:11',
         ]);
@@ -92,7 +93,7 @@ class AuthController extends Controller
 
         $data = $request->validate([
             'name' => 'nullable|string|max:255',
-            'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)],
+            'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)->withoutTrashed()],
             'phone_number' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
             'image' => 'nullable|image|max:2048', // 2MB Max

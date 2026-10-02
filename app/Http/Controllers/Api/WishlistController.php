@@ -24,7 +24,7 @@ class WishlistController extends Controller
      */
     public function index()
     {
-        $products = Auth::user()->wishlist()->with('category')->get();
+        $products = Auth::user()->wishlist()->visible()->with('category')->get();
 
         return $this->successResponse($products, 'تم جلب قائمة المفضلة بنجاح');
     }
@@ -39,12 +39,14 @@ class WishlistController extends Controller
         ]);
 
         $user = Auth::user();
-        $user->wishlist()->toggle($request->product_id);
+        $wishlisted = $user->wishlist()->where('product_id', $request->product_id)->exists();
 
-        $product = \App\Models\Product::find($request->product_id);
-        if ($user->wishlist()->where('product_id', $request->product_id)->exists()) {
-            // $this->metaService->sendAddToWishlist($product, $user);
+        // A product that is no longer sold can still be removed from the list, but not added to it
+        if (!$wishlisted && !\App\Models\Product::visible()->whereKey($request->product_id)->exists()) {
+            return $this->errorResponse(__('api.product_unavailable'), 422);
         }
+
+        $user->wishlist()->toggle($request->product_id);
 
         return $this->successResponse(null, 'تم تحديث قائمة المفضلة بنجاح');
     }

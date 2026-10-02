@@ -58,7 +58,7 @@ class PartnerController extends Controller
 
     public function destroy(Partner $partner)
     {
-        $this->deleteUpload($partner->logo);
+        // Soft delete: the logo stays with the row
         $partner->delete();
 
         return redirect()->route('admin.partners.index')->with('success', 'تم الحذف بنجاح.');

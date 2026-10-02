@@ -3,6 +3,9 @@
 return [
     'products_fetched' => 'تم جلب المنتجات بنجاح',
     'product_fetched' => 'تم جلب بيانات المنتج بنجاح',
+    'product_unavailable' => 'هذا المنتج غير متاح حالياً',
+    'products_unavailable' => 'بعض المنتجات لم تعد متاحة: :names',
+    'category_unavailable' => 'هذا القسم غير متاح حالياً',
     'offers_fetched' => 'تم جلب العروض بنجاح',
     'offer_fetched' => 'تم جلب تفاصيل العرض بنجاح',
     'offer_quoted' => 'تم حساب العرض بنجاح',

@@ -55,7 +55,7 @@ class TeamMemberController extends Controller
 
     public function destroy(TeamMember $teamMember)
     {
-        $this->deleteUpload($teamMember->photo);
+        // Soft delete: the photo stays with the row
         $teamMember->delete();
 
         return redirect()->route('admin.team-members.index')->with('success', 'تم حذف العضو بنجاح.');
