@@ -20,7 +20,7 @@
         'label' => 'الشعار',
         'current' => $partner->logo,
         'required' => ! $partner->exists,
-        'hint' => 'PNG بخلفية شفافة يفضل، حتى 2MB',
+        'hint' => 'PNG بخلفية شفافة يفضل، حتى 10MB',
         'previewClass' => 'w-40 h-20 object-contain',
     ])
 

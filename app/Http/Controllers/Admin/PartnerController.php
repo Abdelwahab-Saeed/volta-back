@@ -70,7 +70,7 @@ class PartnerController extends Controller
             'name_ar' => 'nullable|required_without:name_en|string|max:255',
             'name_en' => 'nullable|required_without:name_ar|string|max:255',
             'type' => ['required', Rule::in(Partner::TYPES)],
-            'logo' => [$creating ? 'required' : 'nullable', 'image', 'max:2048'],
+            'logo' => [$creating ? 'required' : 'nullable', 'image', 'max:10240'],
             'website_url' => 'nullable|url|max:255',
             'sort_order' => 'nullable|integer|min:0|max:100000',
         ], [], [

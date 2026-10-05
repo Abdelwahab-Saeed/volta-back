@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    use ManagesUploads;
+
     public function index()
     {
         $users = User::latest()->paginate(15);
@@ -31,15 +33,13 @@ class UserController extends Controller
             'password' => 'required|min:8|confirmed',
             'role' => 'required|in:user,admin',
             'phone_number' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
         ]);
 
         $data = $request->all();
         $data['password'] = Hash::make($request->password);
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('uploads/users', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', null, 'uploads/users');
 
         User::create($data);
 
@@ -59,7 +59,7 @@ class UserController extends Controller
             'password' => 'nullable|min:8',
             'role' => 'required|in:user,admin',
             'phone_number' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
         ]);
 
         $data = $request->except('password');
@@ -67,12 +67,7 @@ class UserController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        if ($request->hasFile('image')) {
-            if ($user->image) {
-                Storage::disk('public')->delete($user->image);
-            }
-            $data['image'] = $request->file('image')->store('uploads/users', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', $user->image, 'uploads/users');
 
         $user->update($data);
 

@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
+    use ManagesUploads;
+
     /**
      * Display a listing of the resource.
      */
@@ -36,12 +38,10 @@ class PostController extends Controller
             'title_en' => 'required|string|max:255',
             'description_ar' => 'required|string',
             'description_en' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('posts', 'public');
-        }
+        $validated['image'] = $this->replaceUpload($request, 'image', null, 'posts');
 
         Post::create($validated);
 
@@ -66,15 +66,10 @@ class PostController extends Controller
             'title_en' => 'required|string|max:255',
             'description_ar' => 'required|string',
             'description_en' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        if ($request->hasFile('image')) {
-            if ($post->image) {
-                Storage::disk('public')->delete($post->image);
-            }
-            $validated['image'] = $request->file('image')->store('posts', 'public');
-        }
+        $validated['image'] = $this->replaceUpload($request, 'image', $post->image, 'posts');
 
         $post->update($validated);
 

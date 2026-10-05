@@ -11,7 +11,7 @@
         'label' => 'الصورة الشخصية (اختياري)',
         'current' => $member->photo,
         'required' => false,
-        'hint' => 'صورة مربعة يفضل، حتى 2MB. بدون صورة يظهر الحرف الأول من الاسم.',
+        'hint' => 'صورة مربعة يفضل، حتى 10MB. بدون صورة يظهر الحرف الأول من الاسم.',
         'previewClass' => 'w-24 h-24 object-cover rounded-full',
     ])
     @if($member->photo)

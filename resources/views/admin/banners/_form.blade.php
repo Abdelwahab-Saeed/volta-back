@@ -7,7 +7,7 @@
         'current' => $banner?->image,
         'required' => ! $banner,
         'accept' => 'image/*',
-        'hint' => 'PNG أو JPG حتى 2MB. المقاس المناسب عرضي (مثلاً 1600×600).',
+        'hint' => 'PNG أو JPG حتى 10MB. المقاس المناسب عرضي (مثلاً 1600×600).',
         'previewClass' => 'w-full sm:w-80 h-32 object-cover',
     ])
 

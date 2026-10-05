@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Offer;
@@ -9,13 +10,12 @@ use App\Models\Product;
 use App\Support\Money;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class OfferController extends Controller
 {
-    use ReadsListFilters;
+    use ManagesUploads, ReadsListFilters;
 
     // Admins enter offer dates in Egypt local time; they are stored in UTC (the app timezone).
     public const ADMIN_TIMEZONE = 'Africa/Cairo';
@@ -54,9 +54,7 @@ class OfferController extends Controller
 
         $data = $this->offerData($request);
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('offers', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', null, 'offers');
 
         $offer = Offer::create($data);
         $offer->products()->sync($products);
@@ -78,12 +76,7 @@ class OfferController extends Controller
 
         $data = $this->offerData($request);
 
-        if ($request->hasFile('image')) {
-            if ($offer->image) {
-                Storage::disk('public')->delete($offer->image);
-            }
-            $data['image'] = $request->file('image')->store('offers', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', $offer->image, 'offers');
 
         $offer->update($data);
         $offer->products()->sync($products);
@@ -115,7 +108,7 @@ class OfferController extends Controller
             'name_en'              => 'required|string|max:255',
             'description_ar'       => 'nullable|string',
             'description_en'       => 'nullable|string',
-            'image'                => 'nullable|image|max:5120',
+            'image'                => 'nullable|image|max:10240',
             'type'                 => ['required', Rule::in(Offer::TYPES)],
             'bundle_price'         => 'required_if:type,bundle|nullable|numeric|min:0.01',
             'buy_quantity'         => 'required_if:type,buy_x_get_y|nullable|integer|min:1',
