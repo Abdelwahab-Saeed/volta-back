@@ -29,6 +29,10 @@ Read `docs/offers-and-money.md` for the full history and reasoning behind money,
   (a customer's current picks). A delete keeps the row's uploaded files. Relations an order reads (`Order::user()`,
   `Order::offer()`, `OrderItem::product()`) use `withTrashed()`. `coupons.code` and `users.email` are unique only among
   rows that are not deleted, checked by validation (`Rule::unique(...)->withoutTrashed()`), not by the database.
+- **Images are uploaded only through `ImageUploader`** (`App\Services\ImageUploader`, built on `spatie/image`): it stores
+  a WebP shrunk to fit 1920px (GIF/SVG kept as-is) and returns the relative path the image columns hold. Admin
+  controllers use `ManagesUploads::replaceUpload()`. Never call `->store()` on an image directly.
+  `php artisan images:convert-webp [--dry-run]` converts files uploaded before this (originals kept, CSV log in `storage/logs`).
 - **Meta tracking must never break a request**: all calls go through `MetaService::send()` (timeout + logged failures).
   Tests block real HTTP (`Http::preventStrayRequests()` in `tests/TestCase.php`); fake what you need.
 - The admin dashboard is Arabic-only; API texts follow `Accept-Language` (`SetLocale` middleware).
@@ -43,6 +47,9 @@ Read `docs/offers-and-money.md` for the full history and reasoning behind money,
 ## Deploying
 Backend and `volta-app` changes to offers/cart/checkout must be deployed together. Before migrating production:
 `php artisan down`, full `mysqldump`, then `php artisan migrate --force`.
+Uploads accept up to 10 MB, so the server's `upload_max_filesize` / `post_max_size` must be at least 10M (PHP needs GD
+with WebP). To convert existing images: back up `storage/app/public` and the DB, run `php artisan images:convert-webp --dry-run`,
+then `php artisan images:convert-webp`.
 
 ## Git
 Don't push to `main` directly; work on a branch and open a PR.

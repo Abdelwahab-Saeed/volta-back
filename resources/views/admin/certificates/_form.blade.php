@@ -12,7 +12,7 @@
         'label' => 'صورة الشهادة',
         'current' => $certificate->image,
         'required' => ! $certificate->exists,
-        'hint' => 'صورة واضحة للشهادة أو شعار الاعتماد، حتى 4MB',
+        'hint' => 'صورة واضحة للشهادة أو شعار الاعتماد، حتى 10MB',
         'previewClass' => 'w-32 h-40 object-cover',
     ])
 

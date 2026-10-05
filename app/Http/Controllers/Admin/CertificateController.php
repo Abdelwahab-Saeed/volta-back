@@ -65,7 +65,7 @@ class CertificateController extends Controller
             'issuer_en' => 'nullable|string|max:255',
             'description_ar' => 'nullable|string|max:2000',
             'description_en' => 'nullable|string|max:2000',
-            'image' => [$creating ? 'required' : 'nullable', 'image', 'max:4096'],
+            'image' => [$creating ? 'required' : 'nullable', 'image', 'max:10240'],
             'issued_year' => 'nullable|integer|min:1950|max:'.(now()->year + 1),
             'sort_order' => 'nullable|integer|min:0|max:100000',
         ], [], [

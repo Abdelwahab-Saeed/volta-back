@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
-    use ReadsListFilters;
+    use ManagesUploads, ReadsListFilters;
 
     public function index(Request $request)
     {
@@ -42,7 +42,7 @@ class CategoryController extends Controller
             'name_en' => 'required|string|max:255',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'status' => 'boolean',
             'category_order' => 'nullable|integer',
         ]);
@@ -50,9 +50,7 @@ class CategoryController extends Controller
         $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('uploads/categories', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', null, 'uploads/categories');
 
         Category::create($data);
 
@@ -71,7 +69,7 @@ class CategoryController extends Controller
             'name_en' => 'required|string|max:255',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'status' => 'boolean',
             'category_order' => 'nullable|integer',
         ]);
@@ -79,13 +77,7 @@ class CategoryController extends Controller
         $data = $request->except(['image']);
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-            $data['image'] = $request->file('image')->store('uploads/categories', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', $category->image, 'uploads/categories');
 
         $category->update($data);
 

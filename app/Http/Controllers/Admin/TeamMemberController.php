@@ -70,7 +70,7 @@ class TeamMemberController extends Controller
             'role_en' => 'nullable|required_without:role_ar|string|max:255',
             'bio_ar' => 'nullable|string|max:1000',
             'bio_en' => 'nullable|string|max:1000',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|max:10240',
             'linkedin_url' => 'nullable|url|max:255',
             'sort_order' => 'nullable|integer|min:0|max:100000',
         ], [], [

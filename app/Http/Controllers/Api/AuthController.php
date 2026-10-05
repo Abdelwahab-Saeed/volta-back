@@ -3,11 +3,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 use App\Traits\ApiResponse;
 
@@ -87,7 +89,7 @@ class AuthController extends Controller
     }
 
     // UPDATE PROFILE
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, ImageUploader $images)
     {
         $user = $request->user();
 
@@ -96,16 +98,15 @@ class AuthController extends Controller
             'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)->withoutTrashed()],
             'phone_number' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
-            'image' => 'nullable|image|max:2048', // 2MB Max
+            'image' => 'nullable|image|max:10240', // 10MB max; stored as a resized WebP
         ]);
 
         if ($request->hasFile('image')) {
-            // Delete old image if exists
-             if ($user->image && file_exists(public_path($user->image))) {
-                unlink(public_path($user->image));
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
             }
 
-            $data['image'] = $request->file('image')->store('profile_images', 'public');
+            $data['image'] = $images->store($request->file('image'), 'profile_images');
         }
 
         $user->fill($data);

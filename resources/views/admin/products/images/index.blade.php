@@ -20,7 +20,7 @@
                     <x-admin.icon name="upload" class="w-6 h-6" />
                 </span>
                 <span class="text-sm font-bold text-navy-900">اضغط لاختيار الصور</span>
-                <span class="text-xs text-slate-500">يمكنك اختيار أكثر من صورة (PNG, JPG حتى 2MB للملف)</span>
+                <span class="text-xs text-slate-500">يمكنك اختيار أكثر من صورة (PNG, JPG حتى 10MB للملف)</span>
                 <input type="file" name="images[]" id="images" multiple accept="image/*" class="sr-only" onchange="updateFileName(this)">
                 <span id="file-list" class="text-sm font-bold text-brand-700"></span>
             </label>

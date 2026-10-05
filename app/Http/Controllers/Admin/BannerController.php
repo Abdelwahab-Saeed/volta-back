@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class BannerController extends Controller
 {
+    use ManagesUploads;
+
     public function index()
     {
         $banners = Banner::latest()->paginate(15);
@@ -27,16 +29,14 @@ class BannerController extends Controller
             'title_en' => 'required|string|max:255',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|max:10240',
             'status' => 'boolean',
         ]);
 
         $data = $request->all();
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('uploads/banners', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', null, 'uploads/banners');
 
         Banner::create($data);
 
@@ -60,19 +60,14 @@ class BannerController extends Controller
             'title_en' => 'required|string|max:255',
             'description_ar' => 'nullable|string',
             'description_en' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'status' => 'boolean',
         ]);
 
         $data = $request->all();
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            if ($banner->image) {
-                Storage::disk('public')->delete($banner->image);
-            }
-            $data['image'] = $request->file('image')->store('uploads/banners', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', $banner->image, 'uploads/banners');
 
         $banner->update($data);
 

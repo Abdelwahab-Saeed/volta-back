@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin\Concerns;
 
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 trait ManagesUploads
 {
     /**
-     * Store the uploaded file for $field (if any) on the public disk and delete the file it replaces.
+     * Store the uploaded image for $field (if any) on the public disk, as WebP, and delete the file it replaces.
      * Returns the path to save: the new upload, or $current when nothing was uploaded.
      */
     protected function replaceUpload(Request $request, string $field, ?string $current, string $directory): ?string
@@ -17,7 +18,7 @@ trait ManagesUploads
             return $current;
         }
 
-        $path = $request->file($field)->store($directory, 'public');
+        $path = app(ImageUploader::class)->store($request->file($field), $directory);
         $this->deleteUpload($current);
 
         return $path;

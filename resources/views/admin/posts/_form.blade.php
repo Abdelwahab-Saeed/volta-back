@@ -10,7 +10,7 @@
         'label' => 'صورة المقال',
         'current' => $post?->image,
         'accept' => 'image/*',
-        'hint' => 'PNG, JPG, GIF حتى 2MB',
+        'hint' => 'PNG, JPG, GIF حتى 10MB',
         'previewClass' => 'w-40 h-28 object-cover',
     ])
 </div>

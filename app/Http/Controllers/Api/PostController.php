@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Services\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\ApiResponse;
@@ -36,18 +37,18 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ImageUploader $images)
     {
         $validated = $request->validate([
             'title_ar' => 'required|string|max:255',
             'title_en' => 'required|string|max:255',
             'description_ar' => 'required|string',
             'description_en' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('posts', 'public');
+            $validated['image'] = $images->store($request->file('image'), 'posts');
         }
 
         $post = Post::create($validated);
@@ -66,14 +67,14 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(Request $request, Post $post, ImageUploader $images)
     {
         $validated = $request->validate([
             'title_ar' => 'sometimes|required|string|max:255',
             'title_en' => 'sometimes|required|string|max:255',
             'description_ar' => 'sometimes|required|string',
             'description_en' => 'sometimes|required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         if ($request->hasFile('image')) {
@@ -81,7 +82,7 @@ class PostController extends Controller
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
-            $validated['image'] = $request->file('image')->store('posts', 'public');
+            $validated['image'] = $images->store($request->file('image'), 'posts');
         }
 
         $post->update($validated);

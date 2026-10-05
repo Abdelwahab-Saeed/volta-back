@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Support\Money;
+use App\Http\Controllers\Admin\Concerns\ManagesUploads;
 use App\Http\Controllers\Admin\Concerns\ReadsListFilters;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    use ReadsListFilters;
+    use ManagesUploads, ReadsListFilters;
 
     // The list marks stock at or below this as "only N left"
     public const LOW_STOCK = 5;
@@ -65,7 +65,7 @@ class ProductController extends Controller
             'cost_price' => 'nullable|numeric|min:0',
             'shipping_cost' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'preview_url' => 'nullable|url',
             'status' => 'boolean',
         ]);
@@ -73,9 +73,7 @@ class ProductController extends Controller
         $data = Money::fromPoundsFields($request->except(['image']), ['price', 'discount_price', 'cost_price', 'shipping_cost']);
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('uploads/products', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', null, 'uploads/products');
 
         Product::create($data);
 
@@ -108,7 +106,7 @@ class ProductController extends Controller
             'cost_price' => 'sometimes|nullable|numeric|min:0',
             'shipping_cost' => 'sometimes|nullable|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:10240',
             'preview_url' => 'nullable|url',
             'status' => 'sometimes|boolean',
         ]);
@@ -116,12 +114,7 @@ class ProductController extends Controller
         $data = Money::fromPoundsFields($request->except(['image']), ['price', 'discount_price', 'cost_price', 'shipping_cost']);
         $data['status'] = $request->has('status');
 
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $data['image'] = $request->file('image')->store('uploads/products', 'public');
-        }
+        $data['image'] = $this->replaceUpload($request, 'image', $product->image, 'uploads/products');
 
         $product->update($data);
 
