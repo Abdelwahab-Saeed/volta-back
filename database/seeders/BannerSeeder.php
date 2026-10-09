@@ -14,6 +14,7 @@ class BannerSeeder extends Seeder
             'title_ar' => 'اشحن أسرع وانطلق أبعد',
             'description_en' => 'Up to 25% off power banks and fast chargers.',
             'description_ar' => 'خصم يصل إلى 25% على الباور بانك والشواحن السريعة.',
+            'redirect_url' => '/products',
             'status' => true,
         ],
         [
@@ -28,6 +29,7 @@ class BannerSeeder extends Seeder
             'title_ar' => 'اشترِ أكثر ووفّر أكثر',
             'description_en' => 'Get special prices when you buy 2 or 3 pieces.',
             'description_ar' => 'احصل على أسعار خاصة عند شراء قطعتين أو ثلاث.',
+            'redirect_url' => '/offers',
             'status' => true,
         ],
         [
@@ -44,7 +46,8 @@ class BannerSeeder extends Seeder
         foreach (self::BANNERS as $banner) {
             Banner::create([
                 ...$banner,
-                'image' => PlaceholderImage::make('uploads/banners', $banner['title_en'], 1600, 600),
+                'image' => PlaceholderImage::make('uploads/banners', $banner['title_en'], 1920, 600),
+                'image_mobile' => PlaceholderImage::make('uploads/banners', $banner['title_en'], 1080, 630),
             ]);
         }
     }

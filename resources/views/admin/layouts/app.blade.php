@@ -370,6 +370,54 @@
             currentFormId = null;
         }
 
+        // Image inputs (partials/image-upload): preview the picked file before the form is sent.
+        // A cancelled picker, a refused file or undo=true clears the pick and shows the current image again.
+        function pickImage(input, undo = false) {
+            const el = suffix => document.getElementById(input.id + '-' + suffix);
+            const preview = el('preview');
+            const error = el('pick-error');
+            const file = undo ? null : input.files?.[0];
+            const maxKb = Number(input.dataset.maxKb || 0);
+
+            let problem = '';
+            if (file && !file.type.startsWith('image/')) {
+                problem = 'الملف المختار ليس صورة، اختر ملف صورة.';
+            } else if (file && maxKb && file.size > maxKb * 1024) {
+                problem = `حجم الصورة ${(file.size / 1048576).toFixed(1)}MB أكبر من الحد المسموح (${Math.round(maxKb / 1024)}MB)، اختر صورة أصغر.`;
+            }
+            error.textContent = problem;
+            error.classList.toggle('hidden', !problem);
+
+            const picked = Boolean(file) && !problem;
+            if (!picked) input.value = ''; // a refused file must not be sent
+
+            if (preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+            const src = picked ? URL.createObjectURL(file) : preview.dataset.current;
+            preview.src = src;
+            el('preview-box').classList.toggle('hidden', !src);
+            const tag = el('preview-tag');
+            tag.textContent = picked ? 'معاينة الصورة الجديدة' : 'الصورة الحالية';
+            tag.classList.toggle('text-brand-700', picked);
+            tag.classList.toggle('text-slate-500', !picked);
+            el('filename').textContent = picked ? `${file.name} — ${(file.size / 1048576).toFixed(1)}MB` : '';
+            el('filename').classList.toggle('hidden', !picked);
+            el('undo').classList.toggle('hidden', !picked);
+        }
+
+        // Previews with data-size="1600x600": warn when the image has another shape, so it will be cropped.
+        function checkImageShape(img) {
+            const note = document.getElementById(img.id.replace(/-preview$/, '') + '-shape-note');
+            const [w, h] = img.dataset.size.split('x').map(Number);
+            const { naturalWidth: nw, naturalHeight: nh } = img;
+            const off = nw && nh && Math.abs((nw / nh) / (w / h) - 1) > 0.1;
+            note.querySelector('span').textContent = off
+                ? `مقاس الصورة ${nw}×${nh} وشكلها مختلف عن المقاس المناسب ${w}×${h}، لذلك سيظهر في المتجر الجزء الموجود في المعاينة فقط.`
+                : '';
+            note.classList.toggle('hidden', !off);
+        }
+        // The current image may finish loading before this script runs.
+        document.querySelectorAll('img[data-size]').forEach(img => img.complete && img.naturalWidth && checkImageShape(img));
+
         // Dropdowns (quick create, account menu): one open at a time, closed by outside click or Esc.
         function toggleDropdown(button) {
             const menu = button.parentElement.querySelector('.dropdown-menu');
