@@ -22,7 +22,11 @@
               'description' => $this->description,
               'description_ar' => $this->description_ar,
               'description_en' => $this->description_en,
+              // image: tablets and computers (1920×600). image_mobile: phones (1080×630), or null to use image there too.
               'image' => $this->image,
+              'image_mobile' => $this->image_mobile,
+              // null (not clickable), a full http(s) URL (open outside the store) or a store path starting with / (navigate in the app)
+              'redirect_url' => $this->redirect_url,
               'status' => (bool) $this->status,
           ];
       }

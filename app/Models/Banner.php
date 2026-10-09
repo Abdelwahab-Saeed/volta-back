@@ -17,6 +17,8 @@ class Banner extends Model
         'description_ar',
         'description_en',
         'image',
+        'image_mobile',
+        'redirect_url',
         'status',
     ];
 
