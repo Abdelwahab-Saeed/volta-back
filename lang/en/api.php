@@ -31,4 +31,5 @@ return [
     'partners_fetched' => 'Partners and clients fetched successfully',
     'certificates_fetched' => 'Certificates fetched successfully',
     'team_fetched' => 'Team fetched successfully',
+    'distributor_request_received' => 'We received your request. The Volta team will contact you soon',
 ];

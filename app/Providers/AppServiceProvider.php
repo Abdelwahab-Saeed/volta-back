@@ -28,5 +28,10 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perHour(5)->by($request->input('email')),
             ];
         });
+
+        // Public "become a distributor" form
+        RateLimiter::for('distributor-requests', function (Request $request) {
+            return Limit::perHour(5)->by($request->ip());
+        });
     }
 }

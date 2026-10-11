@@ -42,6 +42,10 @@ Route::get('/partners', [App\Http\Controllers\Api\CompanyProfileController::clas
 Route::get('/certificates', [App\Http\Controllers\Api\CompanyProfileController::class, 'certificates']);
 Route::get('/team', [App\Http\Controllers\Api\CompanyProfileController::class, 'team']);
 
+// BECOME A DISTRIBUTOR (managed in the admin dashboard)
+Route::post('/distributor-requests', [App\Http\Controllers\Api\DistributorRequestController::class, 'store'])
+    ->middleware('throttle:distributor-requests');
+
 // POSTS (BLOG)
 Route::get('/posts', [App\Http\Controllers\Api\PostController::class, 'index']);
 Route::get('/posts/{post}', [App\Http\Controllers\Api\PostController::class, 'show']);

@@ -31,4 +31,5 @@ return [
     'partners_fetched' => 'تم جلب الشركاء والعملاء بنجاح',
     'certificates_fetched' => 'تم جلب الشهادات بنجاح',
     'team_fetched' => 'تم جلب فريق العمل بنجاح',
+    'distributor_request_received' => 'تم استلام طلبك، وسيتواصل معك فريق فولتا قريباً',
 ];

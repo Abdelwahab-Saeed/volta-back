@@ -49,6 +49,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('certificates', App\Http\Controllers\Admin\CertificateController::class)->except(['show']);
     Route::resource('team-members', App\Http\Controllers\Admin\TeamMemberController::class)->except(['show']);
 
+    // "Become a distributor" requests
+    Route::resource('distributor-requests', App\Http\Controllers\Admin\DistributorRequestController::class);
+    Route::patch('distributor-requests/{distributor_request}/status', [App\Http\Controllers\Admin\DistributorRequestController::class, 'updateStatus'])->name('distributor-requests.status');
+
     // Product Features
     Route::get('products/{product}/features', [ProductFeatureController::class, 'index'])->name('products.features.index');
     Route::post('products/{product}/features', [ProductFeatureController::class, 'store'])->name('products.features.store');

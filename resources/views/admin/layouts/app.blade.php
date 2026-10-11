@@ -8,6 +8,7 @@
     $admin = auth()->user();
     $unreadCount = $admin->unreadNotifications->count();
     $pendingOrders = \App\Models\Order::where('status', \App\Enums\OrderStatus::PENDING->value)->count();
+    $newDistributorRequests = \App\Models\DistributorRequest::where('status', 'new')->count();
 
     // One list drives the sidebar and the quick search (Ctrl+K).
     // 'active' is the route-name pattern that highlights the item.
@@ -19,6 +20,7 @@
         'المبيعات' => [
             ['label' => 'الطلبات', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*', 'icon' => 'orders', 'badge' => $pendingOrders, 'badgeHint' => 'طلبات قيد الانتظار'],
             ['label' => 'المنتجات المباعة', 'route' => 'admin.reports.sold_products', 'active' => 'admin.reports.*', 'icon' => 'chart'],
+            ['label' => 'طلبات الموزعين', 'route' => 'admin.distributor-requests.index', 'active' => 'admin.distributor-requests.*', 'icon' => 'inbox', 'badge' => $newDistributorRequests, 'badgeHint' => 'طلبات جديدة'],
         ],
         'الكتالوج' => [
             ['label' => 'المنتجات', 'route' => 'admin.products.index', 'active' => ['admin.products.*', 'admin.features.*', 'admin.images.*'], 'icon' => 'cube'],
@@ -46,6 +48,7 @@
         ['label' => 'قسم جديد', 'route' => 'admin.categories.create', 'icon' => 'folder'],
         ['label' => 'بانر جديد', 'route' => 'admin.banners.create', 'icon' => 'photo'],
         ['label' => 'مقال جديد', 'route' => 'admin.posts.create', 'icon' => 'newspaper'],
+        ['label' => 'طلب موزع جديد', 'route' => 'admin.distributor-requests.create', 'icon' => 'inbox'],
     ];
 
     $paletteItems = collect($navGroups)->flatMap(fn ($items, $group) => collect($items)->map(fn ($item) => [
