@@ -28,7 +28,7 @@
                     @endif
                     <div class="flex items-start gap-3 flex-1 min-w-0">
                         <span class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {{ $isUnread ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-400' }}">
-                            <x-admin.icon name="orders" class="w-5 h-5" />
+                            <x-admin.icon :name="isset($notification->data['distributor_request_id']) ? 'inbox' : 'orders'" class="w-5 h-5" />
                         </span>
                         <div class="min-w-0">
                             <p class="text-sm {{ $isUnread ? 'font-extrabold text-navy-900' : 'font-semibold text-slate-700' }}">
@@ -49,6 +49,12 @@
                             <a href="{{ route('admin.orders.show', $notification->data['order_id']) }}" class="btn-secondary btn-sm">
                                 <x-admin.icon name="eye" class="w-3.5 h-3.5" />
                                 عرض الطلب
+                            </a>
+                        @endif
+                        @if(isset($notification->data['distributor_request_id']))
+                            <a href="{{ route('admin.distributor-requests.show', $notification->data['distributor_request_id']) }}" class="btn-secondary btn-sm">
+                                <x-admin.icon name="eye" class="w-3.5 h-3.5" />
+                                عرض طلب الموزع
                             </a>
                         @endif
 

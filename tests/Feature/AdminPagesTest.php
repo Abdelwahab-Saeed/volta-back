@@ -43,6 +43,8 @@ class AdminPagesTest extends TestCase
             route('admin.banners.create'),
             route('admin.posts.index'),
             route('admin.posts.create'),
+            route('admin.distributor-requests.index'),
+            route('admin.distributor-requests.create'),
             route('admin.users.index'),
             route('admin.users.create'),
             route('admin.users.edit', $admin),
