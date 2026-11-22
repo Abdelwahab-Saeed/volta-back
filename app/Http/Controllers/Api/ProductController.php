@@ -13,12 +13,6 @@ use App\Traits\ApiResponse;
 class ProductController extends Controller
 {
     use ApiResponse;
-    protected $metaService;
-
-    public function __construct(\App\Services\MetaService $metaService)
-    {
-        $this->metaService = $metaService;
-    }
 
     // GET PRODUCTS (public for users)
     public function index(Request $request)
@@ -77,8 +71,6 @@ class ProductController extends Controller
         }
 
         $product->load(['category', 'features', 'extraImages']);
-
-        $this->metaService->sendViewContent($product);
 
         return $this->successResponse(new \App\Http\Resources\ProductResource($product), __('api.product_fetched'));
     }

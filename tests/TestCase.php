@@ -11,7 +11,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Tests must never reach real services (Meta tracking runs on checkout, cart and product views),
+        // Tests must never reach real services (Meta tracking runs on checkout),
         // and never carry the real access token from .env.
         config(['services.meta.pixel_id' => 'test-pixel', 'services.meta.access_token' => 'test-token']);
         Http::preventStrayRequests();

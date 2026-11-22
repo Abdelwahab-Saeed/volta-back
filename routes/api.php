@@ -16,9 +16,6 @@ Route::post('/checkout', [App\Http\Controllers\Api\CheckoutController::class, 's
 // Offers are bought directly, never through the cart
 Route::post('/checkout/offer', [App\Http\Controllers\Api\OfferCheckoutController::class, 'store']);
 
-// TRACKING
-Route::post('/track/pageview', [App\Http\Controllers\Api\TrackingController::class, 'pageView']);
-
 // CATEGORIES
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);

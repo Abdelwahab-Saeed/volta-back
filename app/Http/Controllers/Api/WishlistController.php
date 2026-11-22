@@ -12,13 +12,6 @@ class WishlistController extends Controller
 {
     use ApiResponse;
 
-    protected $metaService;
-
-    public function __construct(\App\Services\MetaService $metaService)
-    {
-        $this->metaService = $metaService;
-    }
-
     /**
      * Get all products in the user's wishlist.
      */
