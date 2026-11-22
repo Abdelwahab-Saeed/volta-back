@@ -35,6 +35,9 @@ Read `docs/offers-and-money.md` for the full history and reasoning behind money,
   `php artisan images:convert-webp [--dry-run]` converts files uploaded before this (originals kept, CSV log in `storage/logs`).
 - **Meta tracking must never break a request**: all calls go through `MetaService::send()` (timeout + logged failures).
   Tests block real HTTP (`Http::preventStrayRequests()` in `tests/TestCase.php`); fake what you need.
+  Only **Purchase** is sent from the server, with `event_id` = order id (the storefront uses the same `eventID`).
+  Don't add server copies of PageView/ViewContent/AddToCart: the Conversions API Gateway set up in Meta already
+  copies browser events, and a server copy with a different id is counted twice.
 - The admin dashboard is Arabic-only; API texts follow `Accept-Language` (`SetLocale` middleware).
 - Admin UI: Tailwind Play CDN (no build step). The design system (brand colours, Cairo font, `.card`, `.btn-*`,
   `.input`, `.data-table`, `.badge-*`...) lives in `resources/views/admin/partials/head.blade.php`; icons are

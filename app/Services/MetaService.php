@@ -6,7 +6,14 @@ use App\Support\Money;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class MetaService 
+/**
+ * Server-side events for the Meta Conversions API.
+ *
+ * PageView, ViewContent and AddToCart are sent by the browser pixel only. The pixel has a Conversions API
+ * Gateway (OpenBridge) set up in Meta that already copies every browser event server side with the same event
+ * id; sending them from here as well, with ids the browser never used, made Meta count each one twice.
+ */
+class MetaService
 {
     /**
      * Send events to the Meta Conversions API. Tracking must never break the request that triggered it
@@ -54,28 +61,10 @@ class MetaService
         ];
     }
 
-    public function sendViewContent($product)
-    {
-        $this->send([
-            "data" => [
-                [
-                    "event_name" => "ViewContent",
-                    "event_time" => time(),
-                    "action_source" => "website",
-                    "event_id" => 'vc_' . $product->id . '_' . time(),
-                    "event_source_url" => request()->fullUrl(),
-                    "user_data" => $this->getUserData(auth()->user()),
-                    "custom_data" => [
-                        "content_ids" => [(string)$product->id],
-                        "content_type" => "product",
-                        "value" => Money::toPounds($product->price),
-                        "currency" => "EGP"
-                    ]
-                ]
-            ]
-        ]);
-    }
-
+    /**
+     * The only event sent from the server. event_id is the order id, the same eventID the storefront passes to
+     * fbq('track', 'Purchase') after checkout, so Meta keeps one Purchase per order.
+     */
     public function sendPurchase($order)
     {
         $this->send([
@@ -127,66 +116,4 @@ class MetaService
         ]);
     }
 
-    public function sendAddToCart($product, $user = null)
-    {
-        $this->send([
-                "data" => [
-                    [
-                        "event_name" => "AddToCart",
-                        "event_time" => time(),
-                        "action_source" => "website",
-                        "event_source_url" => request()->fullUrl(),
-                        "event_id" => 'atc_' . $product->id . '_' . time(),
-                        "user_data" => $this->getUserData($user ?: auth()->user()),
-                        "custom_data" => [
-                            "content_ids" => [(string)$product->id],
-                            "content_type" => "product",
-                            "value" => Money::toPounds($product->price),
-                            "currency" => "EGP"
-                        ]
-                    ]
-                ]
-            ]
-        );
-    }
-
-    public function sendAddToWishlist($product, $user = null)
-    {
-        $this->send([
-                "data" => [
-                    [
-                        "event_name" => "AddToWishlist",
-                        "event_time" => time(),
-                        "action_source" => "website",
-                        "event_source_url" => request()->fullUrl(),
-                        "event_id" => 'atw_' . $product->id . '_' . time(),
-                        "user_data" => $this->getUserData($user ?: auth()->user()),
-                        "custom_data" => [
-                            "content_ids" => [(string)$product->id],
-                            "content_type" => "product",
-                            "value" => Money::toPounds($product->price),
-                            "currency" => "EGP"
-                        ]
-                    ]
-                ]
-            ]
-        );
-    }
-
-    public function sendPageView($url, $user = null)
-    {
-        $this->send([
-                "data" => [
-                    [
-                        "event_name" => "PageView",
-                        "event_time" => time(),
-                        "action_source" => "website",
-                        "event_source_url" => $url,
-                        "event_id" => 'pv_' . time(),
-                        "user_data" => $this->getUserData($user ?: auth()->user())
-                    ]
-                ]
-            ]
-        );
-    }
 }
